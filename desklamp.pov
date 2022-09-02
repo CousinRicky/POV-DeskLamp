@@ -24,6 +24,7 @@
  * 1.0   2022-???-??  Completed and uploaded.
  */
 // +W800 +H600 +A0.1 +R5
+// +W1600 +H1200 +A0.1
 #version max (3.5, min (3.8, version));
 
 #ifndef (Lamp_Radiosity) #declare Lamp_Radiosity = yes; #end
