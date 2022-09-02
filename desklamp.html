@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DeskLamp 1.0 User Manual | POV-Ray Object Collection (Proposed)</title>
+<link rel="stylesheet" type="text/css" href="desklamp.css">
+</head>
+
+<body>
+
+<h1>DeskLamp 1.0 User&nbsp;Manual</h1>
+
+<h2>Abstract</h2>
+
+<p>
+<a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
+DeskLamp is a library module proposed for the
+<a href="https://www.povray.org/">Persistence of Vision Raytracer (POV-Ray)</a>
+<a href="http://lib.povray.org/">Object Collection</a> that models a flexible gooseneck hooded desk lamp with a built-in light source. The color and brightness of the light are specified by the user, and realistic light fading (attenuation with distance) is used.
+
+<p>If you use Lightsys IV, you can synchronize DeskLamp and Lightsys IV.
+
+<hr>
+
+<h2 id="toc">Table of Contents</h2>
+
+<table class="toc">
+ <tr>
+  <td>
+   <ul>
+    <li><a href="#Overview">Overview</a>
+     <ul>
+      <li><a href="#Files">Downloaded files</a>
+      <li><a href="#Prereqs">Prerequisites</a>
+      <li><a href="#Compliance">Namespace compliance</a>
+      <li><a href="#Usage">Usage</a>
+     </ul>
+    <li><a href="#Parameters">Global parameters</a>
+    <li><a href="#Lamp_macros">Lamp macro</a>
+     <ul>
+      <li><a href="#Lamp_Flexneck">Lamp_Flexneck</a>
+     </ul>
+    <li><a href="#Conversion">Conversion tools</a>
+     <ul>
+      <li><a href="#Lamp_Color">Lamp_Color, Lamp_Colour</a>
+      <li><a href="#Lamp_fn_Watts_to_Lumens">Lamp_fn_Watts_to_Lumens</a>
+     </ul>
+    <li><a href="#Sync">Synchronization with Lightsys</a>
+     <ul>
+      <li><a href="#Lamp_Get_Lightsys">Lamp_Get_Lightsys</a>
+      <li><a href="#Lamp_Set_Lightsys">Lamp_Set_Lightsys</a>
+     </ul>
+    <li><a href="#Other_identifiers">Other identifiers</a>
+    <li><a href="#About">About DeskLamp</a>
+   </ul>
+  </td> <td>
+   <ul>
+    <li><b>User Manual</b>
+    <li><a href="desklamp_tech.html">Technical Manual</a>
+   </ul>
+  </td>
+ </tr>
+</table>
+
+<hr>
+
+<h2 id="Overview">Overview</h2>
+
+<h3 id="Files">Downloaded Files</h3>
+
+<table>
+ <tr>
+  <th colspan="2">Key Files</th>
+ </tr><tr>
+  <th>File</th>
+  <th>Description</th>
+ </tr><tr>
+  <td><code>desklamp.html</code></td>
+  <td>The user manual (this document)</td>
+ </tr><tr>
+  <td><code>desklamp.inc</code></td>
+  <td>The DeskLamp library</td>
+ </tr><tr>
+  <td><code>desklamp.pov</code></td>
+  <td>A scene description file demonstrating the use of DeskLamp</td>
+ </tr><tr>
+  <td><code>desklamp_lighting.pov</code></td>
+  <td>A scene description file demonstrating bulb color filtering</td>
+ </tr><tr>
+  <td><code>desklamp_ls4.pov</code></td>
+  <td>A scene description file demonstrating usage of DeskLamp with Lightsys IV</td>
+ </tr><tr>
+  <td><code>desklamp.jpg</code></td>
+  <td rowspan="4">Sample output images</td>
+ </tr><tr>
+  <td><code>desklamp_lighting.jpg</code></td>
+ </tr><tr>
+  <td><code>desklamp_ls4.jpg</code></td>
+ </tr><tr>
+  <td><code>desklamp_thumbnail.jpg</code></td>
+ </tr><tr>
+  <td><code>desklamp_tech.html</code></td>
+  <td>A technical manual describing lamp construction tools</td>
+ </tr><tr>
+  <td><code>desklamp_flex_angle.png</code></td>
+  <td>An illustration for the technical manual.</td>
+ </tr><tr>
+  <th colspan="2">Administrative Files</th>
+ </tr><tr>
+  <th>File</th>
+  <th>Description</th>
+ </tr><tr>
+  <td><code>README<var>nnnnnn</var>.html</code></td>
+  <td>Important information about using the POV-Ray Object Collection</td>
+ </tr><tr>
+  <td><code>desklamp_description.txt</code></td>
+  <td>A brief description of DeskLamp</td>
+ </tr><tr>
+  <td><code>desklamp_keywords.txt</code></td>
+  <td>A list of keywords</td>
+ </tr><tr>
+  <td><code>desklamp_prereqs.txt</code></td>
+  <td>Prerequisites</td>
+ </tr><tr>
+  <td><code>desklamp.css</code></td>
+  <td rowspan="3">Other administrative files</td>
+ </tr><tr>
+  <td><code>cc-LGPL-a.png</code></td>
+ </tr><tr>
+  <td><code>Version<var>nnnnnn</var>.js</code></td>
+ </tr>
+</table>
+
+<p>The italicized <var>nnnnnn</var> in some of the file names represents the 6-digit number that is in the name of the <code>.zip</code> file as downloaded from <a href="http://lib.povray.org/">lib.povray.org</a>. If you downloaded this module from some other repository, the files <code>cc-LGPL-a.png</code>, <code>README<var>nnnnnn</var>.html</code>, and <code>Version<var>nnnnnn</var>.js</code> may not be present. Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.povray.org/usersguide/02using.html">Object Collection User’s Guide</a> if <code>README<var>nnnnnn</var>.html</code> is not present.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Prereqs">Prerequisites</h3>
+
+<ul>
+ <li>POV-Ray version 3.5 or later.
+ <li><a href="http://lib.povray.org/searchcollection/index2.php?objectName=RoundEdge&amp;contributorTag=Cousin%20Ricky">RoundEdge</a>, also available from the Object Collection (<a href="https://github.com/CousinRicky/POV-RoundEdge">RoundEdge mirror</a>).
+</ul>
+
+<p>The demo scene <code>desklamp_ls4.pov</code> requires <a href="http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">Lightsys IV</a> version 4b or later; however, the sole purpose of this scene is to demonstrate how DeskLamp can be used alongside Lightsys. Lightsys is not a prerequisite for usage of the DeskLamp library.
+
+<h3 id="Compliance">Namespace Compliance</h3>
+
+<p>All file names in this module and all global and local identifiers defined in <code>desklamp.inc</code> comply fully with the <a href="https://news.povray.org/470b46cb%241%40news.povray.org">Object Collection naming standards</a>, as <a href="https://news.povray.org/48ba92e8%241%40news.povray.org">revised August 2008</a> and <a href="https://news.povray.org/povray.object-collection/thread/%3Cweb.5018a69dae7e89cb85de7b680%40news.povray.org%3E/">proposed August 2012</a>. The files in this module may be safely stored in the same folder as other fully compliant Object Collection modules.
+
+<p>The reserved prefixes for this module are “<code>DeskLamp</code>” and “<code>Lamp</code>,” including any uppercase and lowercase variants. DeskLamp uses the Object Collection module RoundEdge, which reserves the prefixes “<code>RoundEdge</code>” and “<code>RE</code>,” including any uppercase and lowercase variants. To avoid conflicts, do not introduce into your scene description file any identifiers with any of these prefixes as names, or any identifiers that start with any of these prefixes plus an underscore.
+
+<p>The standard include files <code>functions.inc</code>, <code>math.inc</code>, and <code>transforms.inc</code> are used by <code>desklamp.inc</code>. In addition, RoundEdge uses  <code>shapes.inc</code>. The identifier <code>View_POV_Include_Stack</code> from the standard include file <code>debug.inc</code> is referenced by <code>desklamp.inc</code>, although <code>debug.inc</code> itself is not used.
+
+<p>DeskLamp has two macros that interface with Lightsys IV. These macros reference certain Lightsys IV identifiers, prefixed with “<code>Lightsys_</code>,” but DeskLamp will not invoke these identifiers unless the user explicitly calls these macros. Note that, as Lightsys is not part of the Object Collection, there is no guarantee that its identifiers and file names will not conflict with those of compliant Object Collection modules. If you use Lightsys IV, do not keep Lightsys IV in the same folder as your Object Collection modules.
+
+<h3 id="Usage">Usage</h3>
+
+<ol>
+ <li>
+  <p>All DeskLamp light and color calculations are in linear color space, so the following setting is <strong>strongly recommended:</strong>
+  <pre>global_settings { assumed_gamma 1 }</pre>
+  <p>This will impact color definitions from <code>colors.inc</code> as well as from non-POV sources, so you may wish to utilize <a href="#Lamp_Color">macro <code>Lamp_Color()</code></a> for such colors.
+ </li>
+ <li>
+  <p>If you are using radiosity, follow these steps:
+  <ul>
+   <li><p>Set <code>Lamp_Radiosity</code> to <code>true</code>.
+    <pre>#declare Lamp_Radiosity = true;</pre>
+   <li><p>If you are using POV-Ray 3.7 or later, set a very high count with a small default importance. This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
+    <pre>global_settings { radiosity { count 50000, 100000 } }
+#default { radiosity { importance 0.002 } }</pre>
+    <p>If you are using a POV-Ray version older than 3.7, set <a href="https://wiki.povray.org/content/Reference:Radiosity#max_sample"><code>max_sample</code></a> to a positive value in the radiosity block, and declare <a href="#Lamp_Max_Sample"><code>Lamp_Max_Sample</code></a> with that same value. For example:
+    <pre>#declare Lamp_Max_Sample = 15;
+global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
+  </ul>
+ </li>
+ <li>
+  <p>Include this file once prior to using any of DeskLamp’s macros and functions:
+  <pre>#include "desklamp.inc"</pre>
+  <p>Including the file more than once is harmless, though unnecessary.
+ </li>
+ <li>
+  <p>Before creating any lamps, declare additional <a href="#Parameters">global parameters</a> as needed. Most importantly, your scene’s lumens calibration and unit of length must be set; for example:
+  <pre>#declare Lamp_Lumen = 0.02;
+#declare Lamp_Scale = LAMP_METER;</pre>
+  <p>See <a href="#Scale">scale conversions</a> for more information about <code>Lamp_Scale</code>. If you are using Lightsys IV, see <a href="#Sync">Lightsys synchronization</a> for setting the unit of length and lumens calibration. See <a href="#Finish">finish notes</a> for radiosity information.
+ </li>
+</ol>
+
+<p><strong>Do not</strong> change the default <code>global_settings { ambient_light }</code>, or some lamp colors will not turn out correct. Use the <code>#default { finish { ambient } }</code> directive instead.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="Parameters">Global Parameters</h2>
+
+<p>As <code>Lamp_Radiosity</code> and <code>Lamp_Max_Sample</code> are intended to mirror POV-Ray global settings, these two parameters should be set once and not changed thereafter. <code>Lamp_Radiosity</code> should be set prior to including <code>desklamp.inc</code>, and <code>Lamp_Max_Sample</code> should be set prior to creating any lamps. The remaining parameters may be declared or changed at any time.
+
+<table>
+ <tr>
+  <th>Identifier</th> <th>Type</th> <th>Description</th> <th>Default</th>
+ </tr><tr>
+  <td><code>Lamp_371Patch</code></td>
+  <td>float/Boolean</td>
+  <td>Setting this to <code>true</code> enables true power inverse squared light fading when <code>#version</code> is set to 3.71. <strong>Do not</strong> set this to <code>true</code> unless you are using an unofficial POV-Ray patch based on the discontinued POV-Ray 3.7.1. See <a href="#Attenuation">light attenuation notes</a>.</td>
+  <td><code>false</code></td>
+ </tr><tr>
+  <td><code>Lamp_c_Ambient</code></td>
+  <td>color</td>
+  <td>Set this to whatever value you use for <code>#default { finish { ambient } }</code>. If you do not change POV-Ray’s default ambient finish, you may ignore this parameter; see <a href="#Finish">finish notes</a> for details.
+</td>
+  <td> See <a href="#Finish">finish notes</a>.
+  </td>
+ </tr><tr>
+  <td><code>Lamp_Debug</code></td>
+  <td>float/Boolean</td>
+  <td>Sets “verbose” mode: if <code>true</code>, the light fixture macro will write <code>light_source</code> code to the debug stream.</td>
+  <td><code>false</code></td>
+ </tr><tr>
+  <td><code>Lamp_Diffuse</code></td>
+  <td>float</td>
+  <td>Set this to whatever value you use for <code>#default { finish { diffuse } }</code>. If you do not change POV-Ray’s default diffuse reflection finish, you may ignore this parameter. See <a href="#Finish">finish notes</a>.</td>
+  <td>0.6</td>
+ </tr><tr>
+  <td><code>Lamp_Fade</code></td>
+  <td>float</td>
+  <td>The light source <code>fade_distance</code> in centimeters to be used when true power inverse squared light fading is not used.</td>
+  <td>0.3</td>
+ </tr><tr>
+  <td><code>Lamp_Lumen</code></td>
+  <td>float</td>
+  <td>A global brightness factor to determine how bright a lumen should render. Specifically, this is the luminance (gray level) of a 1 square meter white surface illuminated by 1 lumen.</td>
+  <td>0.01</td>
+ </tr><tr id="Lamp_Max_Sample">
+  <td><code>Lamp_Max_Sample</code></td>
+  <td>float</td>
+  <td>If you are using radiosity with a positive <code>max_sample</code>, set <code>Lamp_Max_Sample</code> to the same value. <a href="https://wiki.povray.org/content/Reference:Radiosity#max_sample">Setting <code>max_sample</code></a> is recommended for POV-Ray versions older than 3.7; versions 3.7 and later may also benefit, by allowing for less extreme radiosity counts. See <a href="#Finish">finish notes</a> for additional information.</td>
+  <td>0</td>
+ </tr><tr>
+  <td><code>Lamp_Radiosity</code></td>
+  <td>float/Boolean</td>
+  <td>Whether or not radiosity is used in the scene. See <a href="#Finish">finish notes</a>.</td>
+  <td><code>false</code></td>
+ </tr><tr>
+  <td><code>Lamp_Reflect</code></td>
+  <td>float/Boolean</td>
+  <td>Whether or not a lit light bulb should appear in reflections. If your scene has objects with both <code>reflection</code> and a highlight (<code>phong</code> or <code>specular</code>) in their finishes, you may not want both the reflected bulb and the highlight.
+   <p>Note: The hood interior will always appear in reflections, even when its radiosity contribution is faked with a light source.</td>
+  <td><code>false</code></td>
+ </tr><tr>
+  <td><code>Lamp_Scale</code></td>
+  <td>float</td>
+  <td>The number of centimeters per POV unit in your scene. See <a href="#Scale">scale conversions</a> for more information.</td>
+  <td>1</td>
+ </tr><tr>
+  <td><code>Lamp_c_Weights</code></td>
+  <td>color</td>
+  <td>The color channel luminance function, used for gray scale calculations. The default value reflects the <a href="https://en.wikipedia.org/wiki/Rec._709" target="_blank">ITU-R BT.709</a>/<a href="https://en.wikipedia.org/wiki/SRGB" target="_blank">sRGB</a> chromaticities. You will not normally need to change it.</td>
+  <td><code>rgb &lt;0.2126, 0.7152, 0.0722></code></td>
+ </tr>
+</table>
+
+<h3 id="Finish">Finish Notes</h3>
+
+<dl>
+ <dt><code>Lamp_Radiosity</code></dt>
+ <dd>If radiosity is not used, then the light reflected off the inside of the lamp hood must be simulated with an additional <code>light_source</code>. If radiosity is used with POV-Ray 3.5 or 3.6, which lack the <code>no_radiosity</code> capability, some surface brightnesses must be lowered to counter the redundant radiosity from the light bulb object. In order to do these, DeskLamp needs to know whether or not radiosity is used. It is for this reason that <code>Lamp_Radiosity</code> must be set.</dd>
+ <dt><code>Lamp_Max_Sample</code></dt>
+ <dd>If <code>max_sample</code> is set in the radiosity block, the consequently reduced radiosity must be made up with an additional <code>light_source</code>. It is for this reason that <code>Lamp_Max_Sample</code> must be set.</dd>
+ <dt><code>Lamp_c_Ambient</code> default</dt>
+ <dd>This default depends on the global state of the scene:
+  <ul>
+   <li><code>rgb 0</code> if <code>Lamp_Radiosity</code> is set to <code>true</code> prior to including <code>desklamp.inc</code>;
+   <li><code>rgb 0</code> if <code>#version</code> is 3.8 or greater&mdash;that is, the same as the proposed default ambient for 3.8;
+   <li><code>rgb 0.1</code> otherwise&mdash;that is, the same as the default ambient for POV-Ray 3.7 and older.
+  </ul>
+ </dd>
+ <dt><code>Lamp_c_Ambient</code> and <code>Lamp_Diffuse</code></dt>
+ <dd>These parameters do not affect the scene’s default finish; it is still up to the user to issue the appropriate <code>#default</code> directive. The parameters are used only to keep built-in lamp textures consistent with the rest of your scene. Remember, do not change the default <code>global_settings { ambient_light }</code>.</dd>
+ <dt>Radiosity and ambient</dt>
+ <dd>If you are using radiosity with a POV-Ray version or <code>#version</code> less than 3.7, it is strongly recommended that you set the default ambient to zero:
+  <pre>global_settings { radiosity { ... } }
+#declare Lamp_Radiosity = yes;
+#declare Lamp_c_Ambient = rgb 0;
+#default { finish { ambient rgb 0 } }</pre>
+  Note that if <code>Lamp_Radiosity</code> is set to <code>true</code> prior to inclusion of <code>desklamp.inc</code>, then <code>Lamp_c_Ambient</code> will be set to zero automatically. Remember, do not change the default <code>global_settings { ambient_light }</code>.
+ <dd>
+</dl>
+
+<h3 id="Attenuation">Light Attenuation Notes</h3>
+
+<p>True power inverse squared light fading was introduced during POV-Ray 3.7.1 development, with earlier versions using an approximation, as described in the <a href="https://wiki.povray.org/content/Reference:Light_Source#Light_Fading">light fading reference</a>. Since 3.7.1 has been retracted, official POV-Ray 3.8 will shut off distance attenuation altogether if true power fading is requested with <code>#version</code> set less than 3.8. Accordingly, DeskLamp will normally implement true inverse squared fading only for versions 3.8 and later.
+
+<p>However, some unofficial patches, such as the last <a href="https://github.com/UberPOV/UberPOV">UberPOV</a> release, are based on POV-Ray 3.7.1, and will refuse to render if <code>#version</code> is set at 3.8. Setting <code>Lamp_371Patch</code> to <code>true</code> tells DeskLamp to use true inverse squared fading when <code>#version</code> is set to 3.71.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="Lamp_macros">Lamp Macro</h2>
+
+<h3 id="Lamp_Flexneck">Macro Lamp_Flexneck (Height, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness, t_Fixture, Bulb, c_Bulb, v4_Soft, Use_photons, v_Flags)</h3>
+
+<p>A flexible gooseneck hooded desk lamp. The lamp will be rotated and the neck automatically bent so that the lamp points at a user-specified location or direction. The light fade power is fixed at 2.
+
+<p>If radiosity is not used or if <code>Lamp_Max_Sample</code> is greater than zero, an additional <code>light_source</code> will be added to compensate for the loss of diffuse reflection off the inside of the lamp hood.
+
+<p>The interior of the light bulb socket, which will be hidden in practice, is rudimentary.
+
+<h4>Arguments</h4>
+<p>Scalar arguments will be automatically promoted to colors or vectors where necessary.
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Height</code></td>
+  <td>float</td>
+  <td><p>The height in centimeters of the unflexed fixture from the bottom of its base to the center of the bulb socket. Values less than 30 are disallowed. If you are accustomed to using inches, multiply your inches value by <code>LAMP_INCH</code>. 30 centimeters is slightly less than 12 inches.</td>
+ </tr><tr>
+  <td><code>pv_Base</code></td>
+  <td>point vector</td>
+  <td><p>The location of the base of the fixture, using your scene’s unit of length.</td>
+ </tr><tr>
+  <td><code>v_Up</code></td>
+  <td>vector</td>
+  <td><p>The up direction for the fixture. This would be <code>y</code> for a lamp standing upright.</td>
+ </tr><tr>
+  <td><code>v_Aim</code></td>
+  <td>point or 4-D vector</td>
+  <td><p>The point at which the light is aimed, using your scene’s unit of length.
+   <p>If <code>v_Aim</code> is a 4-D vector, then after the lamp is aimed, the neck will be bent to the angle in degrees of the <code>.t</code> component. A negative value flexes downward; a positive value extends upward. The allowable range is &minus;180...180.
+   <p><strong>Cautions:</strong> If <code>v_Aim</code> is on the fixture’s vertical axis&mdash;that is, directly above or below the lamp along the direction of <code>v_Up</code>&mdash;then the final direction the lamp faces is indeterminate. If <code>v_Aim</code> is scalar, it will be interpreted as a 3-D vector.
+  </td>
+ </tr><tr>
+  <td><code>Status</code></td>
+  <td>float</td>
+  <td><p>The on/off status. Although the switch type is binary, a value between 0 and 1 will be treated as a dimmer setting.</td>
+ </tr><tr>
+  <td><code>c_Light</code></td>
+  <td>color</td>
+  <td><p>The color of the light. Any filter or transmit components are ignored. This color will be filtered by the bulb color.</td>
+ </tr><tr>
+  <td><code>Brightness</code></td>
+  <td>float</td>
+  <td><p>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the bulb color (<code>c_Bulb</code>). If positive, then the bulb color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red bulb will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red bulb will yield only 234 lumens, because red is darker than white. See the illustration below for how <code>Brightness</code> interacts with <code>c_Bulb</code> and <code>c_Light</code>.
+   <p>The brightness calculation assumes a spherical bulb that radiates uniformly in all directions. If this assumption does not apply to your bulb object, you may want to adjust the brightness value accordingly.
+   <p>Note that radiosity from the interior of the hood will add to the total illumination given by the lamp. If <code>Lamp_Radiosity</code> is <code>false</code> or if <code>Lamp_Max_Sample</code> is positive, then an additional light source will be added to replace the absent or reduced radiosity.
+  </td>
+ </tr><tr>
+  <td><code>t_Fixture</code></td>
+  <td>texture</td>
+  <td><p>A texture for the base of the fixture and the exterior of the hood.
+   <p>To apply different textures to the base and the hood, you can use an object texture with <code>plane { y, 0 }</code>. The portion at and below the origin will be applied to the base, and the portion above the origin will be rotated to match the hood.
+  </td>
+ </tr><tr>
+  <td><code>Bulb</code></td>
+  <td>object</td>
+  <td><p>A light bulb. The object&mdash;at least the part that should glow&mdash;must be untextured in order for the glow to work. Some <a href="#Bulbs">pre-declared bulbs</a> are available to use.</td>
+ </tr><tr>
+  <td><code>c_Bulb</code></td>
+  <td>color</td>
+  <td><p>The color of the bulb. Any filter or transmit components are ignored.</td>
+ </tr><tr>
+  <td><code>v4_Soft</code></td>
+  <td>vector/4-tuple</td>
+  <td><p>Area light control, for soft shadows and an extended light source. The components are:
+   <dl class="inline">
+    <dt><code>.x</code>
+    <dd>The size of the area light, relative to the bulb. Use 0 for sharp shadows, 1 for realistically soft shadows, and larger values for even fuzzier shadows.
+    <dt><code>.y</code>
+    <dd>The sampling resolution of the area light, corresponding to <code>Size_1</code> and <code>Size_2</code> in the POV-Ray Reference. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dt><code>.z</code>
+    <dd>The area light adaptive level. Usually 0 or 1 is sufficient. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dt><code>.t</code>
+    <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only, and applies only if the <code>.x</code> component is nonzero.
+   </dl>
+  </td>
+ </tr><tr>
+  <td><code>Use_photons</code></td>
+  <td>float/Boolean</td>
+  <td><p>Whether or not the light shoots photons. This works only if you have turned on photons in the <code>global_settings</code> block.</td>
+ </tr><tr>
+  <td><code>v_Flags</code></td>
+  <td>vector</td>
+  <td><p>Miscellaneous properties of the lamp:
+   <dl>
+    <dt><code>.x</code> component
+    <dd>A quality level. Parts of the lamp can render quite slowly, so this component can simplify the lamp for test renders, first pass radiosity, level-of-detail, etc.
+     <dl class="inline">
+      <dt>0 <dd>Simplified modeling with simulated normals and non-reflective finishes
+      <dt>1 <dd>Simplified modeling with simulated normals and reflective finishes
+      <dt>2 <dd>Detailed modeling with non-reflective finishes
+      <dt>3 <dd>Detailed modeling with reflective finishes
+     </dl>
+     <p>Any other values will have undefined results.
+    <dt><code>.y</code> component
+    <dd>Reserved for future use. Set this to zero to ensure future compatibility.
+    <dt><code>.z</code>, <code>.t</code>, and <code>.transmit</code> components
+    <dd>Reserved for future use.
+   </dl>
+  </td>
+ </tr>
+</table>
+
+<h4>The Brightness and c_Bulb Arguments</h4>
+
+<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
+<p><img src="desklamp_lighting.jpg" alt="[Bulb filter illustration]">
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="Conversion">Conversion Tools</h2>
+
+<h3 id="Lamp_Color">Macros Lamp_Color (Color) and Lamp_Colour (Colour)</h3>
+
+<p>These macros convert a traditional color specification so that it looks correct with <code>assumed_gamma 1</code>. The macros are the same except for spelling. Colors from <code>colors.inc</code>, RGB values from color pickers or eyedropper tools, and X11 color values should be passed to one of these macros before using the colors. RGB colors borrowed from older POV-Ray scene description files may also benefit from these macros.
+
+<h4>Background</h4>
+
+<p>For correct light relationships, <code>assumed_gamma</code> must be set to 1. This sets up a <a href="https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/" target="_blank">linear color space</a> and is the only way to ensure, for example, that a 2000 lumen lamp will render twice as bright as a 1000 lumen lamp. However, colors are traditionally specified for <a href="https://wiki.povray.org/content/Documentation:Tutorial_Section_3.3#Gamma_Handling">non-linear gamma 2.2 or sRGB</a> image formats, and tend to look washed out with <code>assumed_gamma 1</code>. These macros convert such colors to a linear format.
+
+<p>If you are already accustomed to using <code>assumed_gamma</code> 1, and are not using colors from outside sources, you will not need to use these macros.
+
+<p>Note that linear color is appropriate <em>only</em> for the parsing and tracing phases. Output options such as <code>Display_Gamma</code> and <code>File_Gamma</code> should normally remain at gamma 2.2 or sRGB.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Color</code> or <code>Colour</code></td>
+  <td>color</td>
+  <td>The original non-linear color specification, from <code>colors.inc</code> or from a non-POV source.</td>
+ </tr>
+</table>
+
+<h4>Example</h4>
+<pre>#include "colors.inc"
+#include "desklamp.inc"
+global_settings { assumed_gamma 1 }
+object
+{ MyObject1
+  pigment { Lamp_Color (MediumSpringGreen) } // colors.inc identifier
+}
+object
+{ MyObject2
+  pigment { Lamp_Color (&lt;255, 153, 51> / 255) } // from a color picker
+}</pre>
+
+<h4>Additional Notes</h4>
+<ul>
+ <li>With <strong>POV-Ray 3.7 or later,</strong> <code>assumed_gamma</code> <em>must</em> be set to some value before calling these macros, or a parse error will result.
+ <li>With <strong>POV-Ray 3.5 or 3.6,</strong> these macros will yield incorrect results unless <code>assumed_gamma</code> is set to 1.
+ <li>If any of the red, green, and blue components of the color are outside the domain 0...1, a parse warning will result. The American spelling of the macro will appear in the message, regardless of which macro was called.
+ <li>Filter and transmit components will not be altered.
+ <li>A scalar argument will be promoted to a full 5-D color, which is probably not what you want. To convert, say, a medium gray, use <code>Lamp_Color (rgb 0.5)</code>, not <code>Lamp_Color (0.5)</code>.
+</ul>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_fn_Watts_to_Lumens">Function Lamp_fn_Watts_to_Lumens (x)</h3>
+
+<p>Converts the wattage of a tungsten incandescent bulb to lumens. This function uses a curve fit to <a href="https://www.energystar.gov/products/lighting_fans/light_bulbs/learn_about_brightness" target="_blank">published figures</a>. Results outside the domain 40 W to 150 W are extrapolated.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>x</code></td>
+  <td>float</td>
+  <td>The bulb wattage.</td>
+ </tr>
+</table>
+
+<h4>Background</h4>
+<p>Wattage is not a measure of brightness; nevertheless, wattage has historically been used as a proxy for brightness. Although the prevalence of energy efficient bulbs for the home market has made this proxy obsolete, the new bulbs are still often marketed in terms of “watt replacement” for the old tungsten bulbs. DeskLamp works exclusively in lumens, and function <code>Lamp_fn_Watts_to_Lumens()</code> is provided as a convenience in case your specification is given in wattage equivalents.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="Sync">Synchronization with Lightsys</h2>
+
+<p>These macros synchronize some DeskLamp and Lightsys IV global parameters. They are useful for using both modules together in the same scene.
+
+<p>The brightness match is calculated with a white light at a distance of 1 meter. Due to differences in the ways DeskLamp and Lightsys IV calculate lumens and light distance fading, the brightness match may vary slightly with distance and light color.
+
+<h3 id="Lamp_Get_Lightsys">Macro Lamp_Get_Lightsys()</h3>
+
+<p>Synchronizes the brightness calibration and unit of length of DeskLamp with those of Lightsys 4b or later. Specifically, it sets <code>Lamp_Lumen</code> and <code>Lamp_Scale</code> to match the current values of <code>Lightsys_Brightness</code> and <code>Lightsys_Scene_Scale</code>, respectively. If the Lightsys parameters have not been set, then the Lightsys default values are assumed.
+
+<p>Call this macro if you are starting with Lightsys’ brightness and scale settings. First declare <code>Lightsys_Brightness</code> and <code>Lightsys_Scene_Scale</code>, then call <code>Lamp_Get_Lightsys()</code> in lieu of setting the DeskLamp parameters. Simply copying the Lightsys parameters to the corresponding DeskLamp parameters will not work.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Set_Lightsys">Macro Lamp_Set_Lightsys()</h3>
+
+<p>Synchronizes the brightness calibration and unit of length of Lightsys 4b or later with those of DeskLamp. Specifically, it sets <code>Lightsys_Brightness</code> and <code>Lightsys_Scene_Scale</code> to match the current values of <code>Lamp_Lumen</code> and <code>Lamp_Scale</code>, respectively. If the user has not set the DeskLamp parameters at this point, then the DeskLamp default values are used.
+
+<p>Call this macro if you are starting with DeskLamp’s brightness and scale settings. First declare <code>Lamp_Lumen</code> and <code>Lamp_Scale</code>, then call <code>Lamp_Set_Lightsys()</code> in lieu of setting the Lightsys parameters. Simply copying the DeskLamp parameters to the corresponding Lightsys parameters will not work.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="Other_identifiers">Other Identifiers</h2>
+
+<h3 id="Bulbs">Pre-declared Light Bulbs</h3>
+
+<table>
+ <tr><th>Identifier</th> <th>Type</th> <th>Description</th></tr>
+ <tr>
+  <td><code>Lamp_Bulb_A19</code><br> <code>Lamp_Bulb_A60</code></td>
+  <td>object</td>
+  <td>The traditional light bulb shape. The base of the bulb, which is the main practical difference between these two types, is not modeled.</td>
+ </tr>
+</table>
+
+<h3 id="Scale">Scale Conversion Reference Identifiers</h3>
+<p>DeskLamp handles the complications of synchronizing the light source with the lamp scale. In order to accomplish this, it must know how many centimeters are in your scene’s unit of length. This is done by setting the parameter <code>Lamp_Scale</code> to one of these values prior to creating any lamps:
+
+<table>
+ <tr><th>Identifier</th> <th>Type</th> <th>Description</th> <th>Value</th></tr>
+ <tr>
+  <td><code>LAMP_CM</code></td>
+  <td>float</td>
+  <td>Use this if your scene’s unit is 1 centimeter.</td>
+  <td>1</td>
+ </tr><tr>
+  <td><code>LAMP_FOOT</code></td>
+  <td>float</td>
+  <td>Use this if your scene’s unit is 1 foot.</td>
+  <td>30.48</td>
+ </tr><tr>
+  <td><code>LAMP_INCH</code></td>
+  <td>float</td>
+  <td>Use this if your scene’s unit is 1 inch.</td>
+  <td>2.54</td>
+ </tr><tr>
+  <td><code>LAMP_METER</code></td>
+  <td rowspan="2">float</td>
+  <td rowspan="2">Use one of these if your scene’s unit is 1 meter.</td>
+  <td rowspan="2">100</td>
+ </tr><tr>
+  <td><code>LAMP_METRE</code></td>
+ </tr><tr>
+  <td><code>LAMP_YARD</code></td>
+  <td>float</td>
+  <td>Use this if your scene’s unit is 1 yard.</td>
+  <td>91.44</td>
+ </tr>
+</table>
+
+<p>For other unit conversions you may download and use the Object Collection module <a href="http://lib.povray.org/searchcollection/index2.php?objectName=scaleconvert&amp;contributorTag=Charles%20C">scaleconvert</a> (<a href="https://github.com/LeForgeron/PovContributions/tree/master/scaleconvert/charles%20c%201.0">scaleconvert mirror</a>). Since the base unit for DeskLamp is the centimeter, you would convert your scene’s unit to centimeters. For example, if your scene’s unit is 1 hand, you would use:
+<pre>#include "scaleconvert.inc"
+#declare Lamp_Scale = ScaleConvert ("hand", "cm");</pre>
+
+<h3 id="Reference">Reference Identifier</h3>
+
+<table>
+ <tr><th>Identifier</th> <th>Type</th> <th>Description</th> <th>Value</th></tr>
+ <tr>
+  <td><code>DESKLAMP_VERSION</code></td>
+  <td>float</td>
+  <td>The DeskLamp version, in case the scene file needs that information.</td>
+  <td>1.0</td>
+ </tr>
+</table>
+
+<h3>Internal Identifiers</h3>
+
+<p>Any identifiers in <code>desklamp.inc</code> that are not documented in this User Manual or in the <a href="desklamp_tech.html">Technical Manual</a> are considered “private” and are subject to change or elimination in a future update.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h2 id="About">About DeskLamp</h2>
+
+<address>
+ <p>Copyright © 2022 Richard Callwood III. Some rights reserved.
+ <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
+ <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+</address>
+
+<h3 id="Categories">Object Collection Categories</h3>
+
+<ul>
+ <li><strong>Areas of Interest</strong>
+  <ul>
+   <li>Household/office
+  </ul>
+ <li><strong>Contribution Types</strong>
+  <ul>
+   <li>Objects
+    <ul>
+     <li>Solid (CSG-able)
+    </ul>
+   <li>Textures
+    <ul>
+     <li>Finishes
+     <li>Normals
+    </ul>
+   <li>Macros
+   <li>Functions
+    <ul>
+     <li>Isosurface
+     <li>Other
+    </ul>
+  </ul>
+</ul>
+
+<h3>Change Log</h3>
+
+<table>
+ <tr><th>Version</th> <th>Date</th> <th>Notes</th></tr>
+ <tr>
+  <td>n/a</td>
+  <td>2005 March 6</td>
+  <td>An unpublished lamp module is created for a specific project.</td>
+ </tr><tr>
+  <td>n/a</td>
+  <td>2021 January 11</td>
+  <td>Work is started on a new module more suitable for general use.</td>
+ </tr><tr>
+  <td>1.0</td>
+  <td>2022 ??? ??</td>
+  <td>The module is completed. Formal submission to the Object Collection is expected at a later date.</td>
+ </tr>
+</table>
+
+<h3>Possible Future Development</h3>
+<ul>
+ <li>Power cords. Power cords may be developed from separate Object Collection modules.
+ <li>More lamp styles
+ <li>More light bulbs
+</ul>
+
+<h3 id="Links">Links</h3>
+
+<ul>
+ <li><a href="https://en.wikipedia.org/wiki/A-series_light_bulb" target="_blank">Light bulb (Wikipedia)</a>
+ <li><a href="https://en.wikipedia.org/wiki/Lumen_(unit)" target="_blank">Lumen (Wikipedia)</a>
+ <li><a href="https://www.energystar.gov/products/lighting_fans/light_bulbs/learn_about_brightness" target="_blank">Wattage conversion chart (Energy Star)</a>
+</ul>
+
+<h3 id="Acknowledgments">Acknowledgments</h3>
+
+<ul>
+ <li>Alain Martel, for advice on POV-Ray 3.7’s radiosity “importance” feature.
+ <li><a href="http://louisbel.free.fr/" target="_blank">Kurtz le pirate</a> for mathematical assistance.
+</ul>
+
+<p><a href="#toc">Table of contents</a>
+
+</body>
+</html>
