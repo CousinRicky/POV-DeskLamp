@@ -21,7 +21,7 @@
  * Vers  Date         Notes
  * ----  ----         -----
  *       2022-Aug-24  Started.
- * 1.0   2022-???-??  Completed and uploaded.
+ * 1.0   2022-Sep-06  Completed and uploaded.
  */
 // +W600 +H800 +A0.1 +AM2
 #version max (3.5, min (3.8, version));
@@ -39,7 +39,6 @@
 #declare Lamp_Scale = LAMP_FOOT;
 Lamp_Set_Lightsys()
 #declare Lightsys_Brightness = 0.15;
-//@@#declare Lightsys_Brightness = 0.0005;
 Lamp_Get_Lightsys()
 
 #declare Lamp_Diffuse = 0.75;
@@ -150,13 +149,13 @@ union
   box
   { -<1, 0, 1>, 1 scale <DLIGHT/2, HLIGHT, DLIGHT/2>
     // The surface brightness isn't exactly what I think it should be,
-    // but it's in the ballpark.
+    // compared to the lamp hood interior, but it's fairly close.
     pigment { rgb Light_Color (c3_Main, MainLm) * LS4toSqMeter / MainSqMeter }
     #if (version >= 3.7)
-      finish { emission 1 }
+      finish { ambient 0 diffuse 0 emission 1 }
       no_radiosity
     #else
-      finish { ambient 1 }
+      finish { ambient 1 diffuse 0 }
     #end
     no_shadow
   }

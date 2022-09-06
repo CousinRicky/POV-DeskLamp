@@ -167,12 +167,13 @@ DeskLamp is a library module proposed for the
   <ul>
    <li><p>Set <code>Lamp_Radiosity</code> to <code>true</code>.
     <pre>#declare Lamp_Radiosity = true;</pre>
+   <li><p>If you are using a POV-Ray version older than 3.7, set <a href="https://wiki.povray.org/content/Reference:Radiosity#max_sample"><code>max_sample</code></a> to a positive value in the radiosity block, and declare <a href="#Lamp_Max_Sample"><code>Lamp_Max_Sample</code></a> with that same value. For example:
+    <pre>#declare Lamp_Max_Sample = 15;
+global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
    <li><p>If you are using POV-Ray 3.7 or later, set a very high count with a small default importance. This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
     <pre>global_settings { radiosity { count 50000, 100000 } }
 #default { radiosity { importance 0.002 } }</pre>
-    <p>If you are using a POV-Ray version older than 3.7, set <a href="https://wiki.povray.org/content/Reference:Radiosity#max_sample"><code>max_sample</code></a> to a positive value in the radiosity block, and declare <a href="#Lamp_Max_Sample"><code>Lamp_Max_Sample</code></a> with that same value. For example:
-    <pre>#declare Lamp_Max_Sample = 15;
-global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
+    <p>Alternatively, you may do the same as for older POV-Ray versions, as described in the previous step.
   </ul>
  </li>
  <li>
@@ -245,6 +246,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
   <td><code>Lamp_Reflect</code></td>
   <td>float/Boolean</td>
   <td>Whether or not a lit light bulb should appear in reflections. If your scene has objects with both <code>reflection</code> and a highlight (<code>phong</code> or <code>specular</code>) in their finishes, you may not want both the reflected bulb and the highlight.
+   <p>An unlit bulb will always be reflected.
    <p>Note: The hood interior will always appear in reflections, even when its radiosity contribution is faked with a light source.</td>
   <td><code>false</code></td>
  </tr><tr>
@@ -289,9 +291,9 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
 
 <h3 id="Attenuation">Light Attenuation Notes</h3>
 
-<p>True power inverse squared light fading was introduced during POV-Ray 3.7.1 development, with earlier versions using an approximation, as described in the <a href="https://wiki.povray.org/content/Reference:Light_Source#Light_Fading">light fading reference</a>. Since 3.7.1 has been retracted, official POV-Ray 3.8 will shut off distance attenuation altogether if true power fading is requested with <code>#version</code> set less than 3.8. Accordingly, DeskLamp will normally implement true inverse squared fading only for versions 3.8 and later.
+<p>True power light fading was introduced during POV-Ray 3.7.1 development, with earlier versions using an approximation, as described in the <a href="https://wiki.povray.org/content/Reference:Light_Source#Light_Fading">light fading reference</a>. Since 3.7.1 has been retracted, official POV-Ray 3.8 will shut off distance attenuation altogether if true power fading is requested with <code>#version</code> set less than 3.8. Accordingly, DeskLamp will normally implement true inverse squared fading only for versions 3.8 and later.
 
-<p>However, some unofficial patches, such as the last <a href="https://github.com/UberPOV/UberPOV">UberPOV</a> release, are based on POV-Ray 3.7.1, and will refuse to render if <code>#version</code> is set at 3.8. Setting <code>Lamp_371Patch</code> to <code>true</code> tells DeskLamp to use true inverse squared fading when <code>#version</code> is set to 3.71.
+<p>However, some unofficial patches, such as the last <a href="https://github.com/UberPOV/UberPOV" target="_blank">UberPOV</a> release, are based on POV-Ray 3.7.1, and will refuse to render if <code>#version</code> is set at 3.8. Setting <code>Lamp_371Patch</code> to <code>true</code> tells DeskLamp to use true inverse squared fading when <code>#version</code> is set to 3.71.
 
 <p><a href="#toc">Table of contents</a><hr>
 
@@ -411,7 +413,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
 
 <h3 id="Lamp_Color">Macros Lamp_Color (Color) and Lamp_Colour (Colour)</h3>
 
-<p>These macros convert a traditional color specification so that it looks correct with <code>assumed_gamma 1</code>. The macros are the same except for spelling. Colors from <code>colors.inc</code>, RGB values from color pickers or eyedropper tools, and X11 color values should be passed to one of these macros before using the colors. RGB colors borrowed from older POV-Ray scene description files may also benefit from these macros.
+<p>These macros convert a traditional color specification so that it looks correct with <code>assumed_gamma 1</code>. The macros are the same except for spelling. Colors from <code>colors.inc</code>, RGB values from color pickers or eyedropper tools, and X11 color values should be passed to one of these macros before using the colors. RGB colors borrowed from older POV-Ray scene description files may also benefit from one of these macros.
 
 <h4>Background</h4>
 
@@ -572,7 +574,7 @@ object
 
 <address>
  <p>Copyright © 2022 Richard Callwood III. Some rights reserved.
- <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
+ <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html" target="_blank">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
  <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 </address>
 
@@ -617,7 +619,7 @@ object
   <td>Work is started on a new module more suitable for general use.</td>
  </tr><tr>
   <td>1.0</td>
-  <td>2022 ??? ??</td>
+  <td>2022 September 6</td>
   <td>The module is completed. Formal submission to the Object Collection is expected at a later date.</td>
  </tr>
 </table>

@@ -21,7 +21,7 @@
  * Vers  Date         Notes
  * ----  ----         -----
  *       2021-Jan-11  Started.
- * 1.0   2022-???-??  Completed and tested.
+ * 1.0   2022-Sep-06  Completed and tested.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -31,7 +31,7 @@
 
 #declare DESKLAMP_VERSION = 1.0;
 #ifdef (View_POV_Include_Stack)
-  #debug "#include \"desklamp.inc\" //version 1.0.beta-20220830\n"
+  #debug "#include \"desklamp.inc\" //version 1.0\n"
   #debug concat ("  #version ", str (version, 0, 2), ";\n")
 #end
 
@@ -175,7 +175,7 @@
   #end
 #end
 
-// Converts a 3-D vector to a string of so many significant digits:
+// Converts a 3-D or 4-D vector to a string of so many significant digits:
 #macro Lamp__vstr (V, Sig)
   #local lamp_High = max (VMax (V), VMax (-V));
   concat
@@ -659,7 +659,7 @@
     ( lamp_lFlex, LAMP__R1HOOD + LAMP__HTOP - lamp_Flatten,
       <lamp_pv_Aim_rotated.z - LAMP_ZOFS, lamp_pv_Aim_rotated.y - lamp_hBottom - LAMP_HBASE>
     );
-    #if (lamp_Flex > pi)
+    #if (-lamp_Flex > pi)
       #warning concat
       ( "Height = ", Lamp__str (Height, 4),
         ", pv_Base = ", Lamp__vstr (pv_Base + <0,0,0>, 4),
@@ -1074,10 +1074,10 @@
       #local lamp_Gray = Lamp_Luminance (lamp_L * lamp_B);
       #if (lamp_Gray = 0)
         Lamp__light_error
-        ( s_Caller, lamp_L, lamp_, Brightness,
+        ( s_Caller, lamp_L, lamp_B, Brightness,
           concat
           ( "the light's filtered color (", Lamp__cstr (lamp_L * lamp_B, 4),
-            ") is black. Lumens cannot be achieved."
+            ") has luminance 0. Lumens cannot be achieved."
           )
         )
       #end
@@ -1088,7 +1088,7 @@
         ( s_Caller, c_Light, c_Bulb, Brightness,
           concat
           ( "the light's color (", Lamp__cstr (lamp_L, 4),
-            ") is black. Lumens cannot be achieved."
+            ") has luminance 0. Lumens cannot be achieved."
           )
         )
       #end
@@ -1149,7 +1149,7 @@
 #macro Lamp_Orient_Trans (pv_Base, v_Up, pv_Aim, Warning_up, Warning_aim)
   #local lamp_v_Up = v_Up + <0,0,0>;
   #local lamp_v_Up = <lamp_v_Up.x, lamp_v_Up.y, lamp_v_Up.z>;
-  #local lamp_v_Dir = pv_Aim - pv_Base;
+  #local lamp_v_Dir = pv_Aim - pv_Base + <0,0,0>;
 
   #declare Warning_up = VZero (lamp_v_Up);
   #if (Warning_up) #local lamp_v_Up = y;
@@ -1243,7 +1243,7 @@
         #end
       #end
     #end
-    #if (!Use_photons)
+    #if (!Photons)
       photons { reflection off refraction off }
     #end
   }

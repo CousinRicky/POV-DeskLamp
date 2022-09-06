@@ -21,7 +21,7 @@
  * Vers  Date         Notes
  * ----  ----         -----
  *       2021-Dec-16  Started.
- * 1.0   2022-???-??  Completed and uploaded.
+ * 1.0   2022-Sep-06  Completed and uploaded.
  */
 // +W800 +H600 +A0.1 +R5
 // +W1600 +H1200 +A0.1
