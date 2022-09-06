@@ -11,7 +11,7 @@
 <h1>DeskLamp 1.0 Technical Manual</h1>
 
 <p>
-<a href="desklamp.jpg"><img class="demo" src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
+<a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
 This manual describes tools used to construct the desk lamp. Ordinarily, you will not need to use these tools, but they may be used for constructing your own lamps.
 
 <hr>
@@ -310,7 +310,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p>Error messages issued by <code>Lamp_Lighting()</code> will cite the formal parameters <code>c_Light</code>, <code>c_Bulb</code>, and <code>Brightness</code> by name; therefore, it will be helpful to the end user that any lamp macro that calls <code>Lamp_Lighting()</code> use the same names for its own corresponding formal parameters.
 
-<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
+<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases" target="_blank">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
 <p><img src="desklamp_lighting.jpg" alt="[Bulb filter illustration]">
 
 <p><a href="#toc">Table of contents</a><hr>
@@ -400,7 +400,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p><a href="#toc">Table of contents</a><hr>
 
-<h3 id="Lamp_Source">Macro Lamp_Source (s_Caller, pv_Location, c_Light, Fade, s_Hood, Photons, zHood, v4_Soft, Xform)</h3>
+<h3 id="Lamp_Source">Macro Lamp_Source (s_Caller, pv_Location, c_Light, Fade, v4_Soft, Photons, s_Hood, zHood, Xform)</h3>
 
 <p>Creates a light source with a fade power of 2. If <code>Lamp_Debug</code> is <code>true</code>, then SDL code for the light source, and optionally, a simplified lamp fixture hood, is written to the debug stream.
 
@@ -566,7 +566,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <address>
  <p>Copyright © 2022 Richard Callwood III. Some rights reserved.
- <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
+ <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html" target="_blank">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
  <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 </address>
 
