@@ -1,11 +1,11 @@
-/* desklamp.pov 1.0
+/* desklamp.pov 2.0
  * Persistence of Vision Raytracer scene description file
- * A proposed POV-Ray Object Collection Demo.
+ * A proposed POV-Ray Object Collection demo
  *
  * Demonstrates use of DeskLamp.
  *
- * Copyright (C) 2022 Richard Callwood III.  Some rights reserved.
- * This file is licensed under the terms of the CC-LGPL
+ * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * This file is licensed under the terms of the GNU-LGPL
  * a.k.a. the GNU Lesser General Public License version 2.1.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,10 +18,13 @@
  * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
  * the text of the GNU Lesser General Public License version 2.1.
  *
- * Vers  Date         Notes
- * ----  ----         -----
- *       2021-Dec-16  Started.
- * 1.0   2022-Sep-06  Completed and uploaded.
+ * Vers.  Date         Notes
+ * -----  ----         -----
+ *        2021-Dec-16  Started.
+ * 1.0    2022-Sep-06  Completed and uploaded.
+ *        2024-Jan-15  A finish highlight is corrected.
+ * 2.0    2024-Jun-04  One of the hooded lamps is replaced with a flat panel
+ *                     lamp.
  */
 // +W800 +H600 +A0.1 +R5
 // +W1600 +H1200 +A0.1
@@ -39,9 +42,12 @@
 #declare Lamp_Scale = LAMP_FOOT;
 #declare Lamp_Lumen = 0.01;
 #declare Lamp_Diffuse = 0.75;
-#declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <6.5, 4.8, 3.6> * Lamp_Lumen);
+#declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <8.8, 7.2, 6.4> * Lamp_Lumen);
+// We must set a default finish before #including woods.inc.  POV-Ray's default
+// diffuse is assumed:
 #default { finish { ambient Lamp_c_Ambient * 0.6 / Lamp_Diffuse diffuse 0.6 } }
 #include "woods.inc"
+// Now set our scene's default finish:
 #default { finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse } }
 
 #if (version < 3.7)
@@ -91,7 +97,7 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 1 fresnel } conserve_energy
-    specular 0.134 roughness 0.001
+    specular 6.08464 roughness 0.001
   }
 }
 
@@ -108,76 +114,103 @@ camera
 
 //======================== THE LAMPS ===========================
 
-// All examples use gamma conversion for the lamp texture,
+// All these examples use gamma conversion for the lamp texture,
 // but linear color for the light and bulb colors.
 
 #switch (Draft)
   #case (0)
     #declare Soft = 0;
-    #declare Flags = <1, 0>;
+    #declare Quality = 1;
     #break
   #case (1)
     #declare Soft = <1, 5, 0, 0>;
-    #declare Flags = <1, 0>;
+    #declare Quality = 1;
     #break
   #case (2)
     #declare Soft = <1, 17, 2, 0>;
-    #declare Flags = <3, 0>;
+    #declare Quality = 3;
     #break
 #end
 
-// example with American scaling, aim point, white bulb, & wattage proxy:
-#declare t_Red = texture { pigment { Lamp_Color (Scarlet) } }
-texture { t_Gloss }
-object
-{ Lamp_Flexneck
-  ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
-    <0, HTABLE, RROOM - DTABLE + 0.5>, on, rgb <1.0000, 0.5574, 0.2422>,
-    Lamp_fn_Watts_to_Lumens (40), t_Red, Lamp_Bulb_A19,
-    rgb 1, Soft, off, Flags
-  )
-  interior { i_Gloss }
-}
-
-// example with international scaling, aim angle, colored bulb, & split texture:
-#declare t_Blue = texture
+// Hooded lamp with American scaling, aim point, white bulb,
+// wattage proxy, binary switch, & split texture:
+#declare t_Red = texture
 { pigment
   { object
     { plane { y, 0 }
       pigment
-      { checker Lamp_Colour (DarkSlateBlue) Lamp_Colour (SlateBlue)
-        scale <1 / 10, 1, 3>
-        warp { cylindrical }
-        scale 1/12
+      { radial color_map
+        { [0.5 Lamp_Color (Scarlet)]
+          [0.5 Lamp_Color (MediumVioletRed)]
+        }
+        frequency 6
+        rotate 15 * y
       }
-      pigment { Lamp_Colour ((DarkSlateBlue + SlateBlue) / 2) }
+      pigment { Lamp_Color (Scarlet) }
     }
   }
 }
 texture { t_Gloss }
 object
 { Lamp_Flexneck
-  ( 45, <1, HTABLE, RROOM - DTABLE + 1>, y,
-    <0, HTABLE, RROOM - DTABLE + 1, 0>, on, rgb 1,
-    -450, t_Blue, Lamp_Bulb_A60,
-    CHSV2RGB (<210, 0.8, 1>), Soft, off, Flags
+  ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
+    <0, HTABLE, RROOM - DTABLE + 0.5>, on, rgb <1.0000, 0.5574, 0.2422>,
+    Lamp_fn_Watts_to_Lumens (40), t_Red, Lamp_Bulb_A19,
+    rgb 1, Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
-// example with international scaling, aim angle, & colored bulb; switched off:
-#declare t_Green = texture { pigment { Lamp_Color (SeaGreen) } }
+// Hooded lamp with international scaling, aim angle, colored
+// bulb, binary switch, & split texture; switched off:
+#declare t_Green = texture
+{ pigment
+  { object
+    { plane { y, 0 }
+      pigment
+      { radial color_map
+        { [0.5 Lamp_Colour (SeaGreen)]
+          [0.5 Lamp_Colour (YellowGreen)]
+        }
+        frequency 6
+        rotate 15 * y
+      }
+      pigment { Lamp_Colour (SeaGreen) }
+    }
+  }
+}
 texture { t_Gloss }
 object
 { Lamp_Flexneck
   ( 45, <0.25, HTABLE, RROOM - 0.9>, y,
     <0, HTABLE, RROOM - 2, -20>, off, rgb 1,
     -450, t_Green, Lamp_Bulb_A60,
-    CHSV2RGB (<45, 0.9, 1>), Soft, off, Flags
+    CHSV2RGB (<45, 0.9, 1>), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
+// Flat panel lamp with international scaling, aim angle,
+// colored bulb, & dimmer dial:
+#declare t_Blue = texture
+{ pigment
+  { radial color_map
+    { [0.5 Lamp_Colour (SlateBlue)]
+      [0.5 Lamp_Colour (DarkSlateBlue)]
+    }
+    frequency 3
+  }
+}
+texture { t_Low_gloss }
+object
+{ Lamp_Flexneck_Rectangular
+  ( 45, 12.5, <1, HTABLE, RROOM - DTABLE + 1>, y,
+    <0, HTABLE, RROOM - DTABLE + 1, -15>, 1, rgb 1,
+    -300, 2, t_Blue,
+    CHSV2RGB (<210, 0.8, 1>), 10, Soft, off, 1
+  )
+  interior { i_Gloss }
+}
 //======================= ROOM & TABLE =========================
 
 box
@@ -232,12 +265,12 @@ union
     pigment { rgb 0.96 }
     finish { ambient Lamp_c_Ambient / Lamp_Diffuse diffuse 1 }
   }
- // Note: actual text objects are A LOT faster than an object pigment.
+ // Note: actual text objects render A LOT faster than an object pigment.
   union
   { #declare yHeading = HPAPER - VMARGIN - hLarge;
     object
     { Center_Object (Heading, x)
-      translate <WPAPER / 2, yHeading, -PAPER_THIN * 0.1>
+      translate <WPAPER / 2, yHeading, 0>
     }
     #declare yLine = yHeading - REGULAR * 2;
     #declare L = 0;

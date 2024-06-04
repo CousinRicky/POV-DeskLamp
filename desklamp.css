@@ -1,11 +1,11 @@
 /* desklamp.css
  *
- * Copyright 2022 Richard Callwood III.  Some rights reserved.
+ * Copyright 2022, 2024 Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU LGPL 2.1.
  * See https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for the text of
  * the license.
  *
- * Version 1.0  2022-Sep-06
+ * Version 2.0  2024-Jun-04
  */
 a
 { text-decoration:none;
@@ -51,8 +51,6 @@ dl
   padding:0;
   line-height:1.2;
 }
-del { background:inherit; color:#900; } /*@@ TEMPORARY! */
-ins { background:inherit; color:#005038; } /*@@ TEMPORARY! */
 div, dt
 { margin:0; padding:0; line-height:1.2;
 }
@@ -197,6 +195,8 @@ dl.compact, dl.inline
 { float:left;
   width:2.0em;
   clear:left;
+  line-height:1;
+  margin-top:0.1em;
 }
 
 .demo

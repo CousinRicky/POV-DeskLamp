@@ -1,11 +1,15 @@
-/* desklamp_ls4.pov 1.0
+/* desklamp_ls4.pov 2.0
  * Persistence of Vision Raytracer scene description file
- * A proposed POV-Ray Object Collection Demo.
+ * A proposed POV-Ray Object Collection demo
  *
  * Demonstrates use of DeskLamp with Lightsys IV.
+ * Download Lightsys IV at:
+ *   http://www.ignorancia.org/index.php/technical/lightsys/
+ *     or
+ *   https://news.povray.org/64cffd99%40news.povray.org
  *
- * Copyright (C) 2022 Richard Callwood III.  Some rights reserved.
- * This file is licensed under the terms of the CC-LGPL
+ * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * This file is licensed under the terms of the GNU-LGPL
  * a.k.a. the GNU Lesser General Public License version 2.1.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,10 +22,11 @@
  * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
  * the text of the GNU Lesser General Public License version 2.1.
  *
- * Vers  Date         Notes
- * ----  ----         -----
- *       2022-Aug-24  Started.
- * 1.0   2022-Sep-06  Completed and uploaded.
+ * Vers.  Date         Notes
+ * -----  ----         -----
+ *        2022-Aug-24  Started.
+ * 1.0    2022-Sep-06  Completed and uploaded.
+ * 2.0    2024-Jan-15  A finish highlight is corrected.
  */
 // +W600 +H800 +A0.1 +AM2
 #version max (3.5, min (3.8, version));
@@ -43,8 +48,11 @@ Lamp_Get_Lightsys()
 
 #declare Lamp_Diffuse = 0.75;
 #declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <0.315, 0.285, 0.275>);
+// We must set a default finish before #including woods.inc.  POV-Ray's default
+// diffuse is assumed:
 #default { finish { ambient Lamp_c_Ambient * 0.6 / Lamp_Diffuse diffuse 0.6 } }
 #include "woods.inc"
+// Now set our scene's default finish:
 #default { finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse } }
 
 #declare Lamp_Max_Sample = 15;
@@ -101,7 +109,7 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 1 fresnel } conserve_energy
-    specular 0.134 roughness 0.001
+    specular 6.08464 roughness 0.001
   }
 }
 
@@ -219,7 +227,7 @@ object
     }
     plane { <-1, 1, 0>, 0 translate Length/2 * y }
     plane { <-1, -1, 0>, 0 translate -Length/2 * y }
-    texture { T_Wood6 rotate <90, 90, 20> scale 0.1}
+    texture { T_Wood6 rotate <90, 90, 20> scale 0.1 }
     texture { t_Gloss }
   }
 #end

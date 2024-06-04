@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 1.0 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 2.0 User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 1.0 User&nbsp;Manual</h1>
+<h1>DeskLamp 2.0 User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
@@ -16,7 +16,9 @@
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
 DeskLamp is a library module proposed for the
 <a href="https://www.povray.org/">Persistence of Vision Raytracer (POV-Ray)</a>
-<a href="http://lib.povray.org/">Object Collection</a> that models a flexible gooseneck hooded desk lamp with a built-in light source. The color and brightness of the light are specified by the user, and realistic light fading (attenuation with distance) is used.
+<a href="https://lib.povray.org/">Object Collection</a> that models several styles of desk lamp, each with a flexible neck and built-in light source. The color and brightness of the light are specified by the user, and realistic light fading (attenuation with distance) is used.
+
+<p>A hooded lamp and two flat panel styles are defined.
 
 <p>If you use Lightsys IV, you can synchronize DeskLamp and Lightsys IV.
 
@@ -36,9 +38,12 @@ DeskLamp is a library module proposed for the
       <li><a href="#Usage">Usage</a>
      </ul>
     <li><a href="#Parameters">Global parameters</a>
-    <li><a href="#Lamp_macros">Lamp macro</a>
+    <li><a href="#Lamp_macros">Lamp macros</a>
      <ul>
+      <li><a href="#Brightness">Brightness and c_Bulb/c_Panel Arguments</a>
       <li><a href="#Lamp_Flexneck">Lamp_Flexneck</a>
+      <li><a href="#Lamp_Flexneck_Rectangular">Lamp_Flexneck_Rectangular</a>
+      <li><a href="#Lamp_Flexneck_Round">Lamp_Flexneck_Round</a>
      </ul>
     <li><a href="#Conversion">Conversion tools</a>
      <ul>
@@ -131,7 +136,7 @@ DeskLamp is a library module proposed for the
  </tr>
 </table>
 
-<p>The italicized <var>nnnnnn</var> in some of the file names represents the 6-digit number that is in the name of the <code>.zip</code> file as downloaded from <a href="http://lib.povray.org/">lib.povray.org</a>. If you downloaded this module from some other repository, the files <code>cc-LGPL-a.png</code>, <code>README<var>nnnnnn</var>.html</code>, and <code>Version<var>nnnnnn</var>.js</code> may not be present. Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.povray.org/usersguide/02using.html">Object Collection User’s Guide</a> if <code>README<var>nnnnnn</var>.html</code> is not present.
+<p>The italicized <var>nnnnnn</var> in some of the file names represents the 6-digit number that is in the name of the <code>.zip</code> file as downloaded from <a href="https://lib.povray.org/">lib.povray.org</a>. If you downloaded this module from some other repository, the files <code>cc-LGPL-a.png</code>, <code>README<var>nnnnnn</var>.html</code>, and <code>Version<var>nnnnnn</var>.js</code> may not be present. Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.povray.org/usersguide/02using.html">Object Collection User’s Guide</a> if <code>README<var>nnnnnn</var>.html</code> is not present.
 
 <p><a href="#toc">Table of contents</a><hr>
 
@@ -139,10 +144,10 @@ DeskLamp is a library module proposed for the
 
 <ul>
  <li>POV-Ray version 3.5 or later.
- <li><a href="http://lib.povray.org/searchcollection/index2.php?objectName=RoundEdge&amp;contributorTag=Cousin%20Ricky">RoundEdge</a>, also available from the Object Collection (<a href="https://github.com/CousinRicky/POV-RoundEdge">RoundEdge mirror</a>).
+ <li><a href="https://lib.povray.org/searchcollection/index2.php?objectName=RoundEdge&amp;contributorTag=Cousin%20Ricky">RoundEdge</a> version 2.0 or later, also available from the Object Collection (<a href="https://github.com/CousinRicky/POV-RoundEdge">RoundEdge mirror</a>).
 </ul>
 
-<p>The demo scene <code>desklamp_ls4.pov</code> requires <a href="http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">Lightsys IV</a> version 4b or later; however, the sole purpose of this scene is to demonstrate how DeskLamp can be used alongside Lightsys. Lightsys is not a prerequisite for usage of the DeskLamp library.
+<p>The demo scene <code>desklamp_ls4.pov</code> requires <a href="http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">Lightsys IV</a> version 4b or later (<a href="https://news.povray.org/64cffd99%40news.povray.org" target="_blank">mirror</a> and <a href="https://web.archive.org/web/20230609145607/http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">documentation archive</a>); however, the sole purpose of this scene is to demonstrate how DeskLamp can be used alongside Lightsys. Lightsys is not a prerequisite for usage of the DeskLamp library.
 
 <h3 id="Compliance">Namespace Compliance</h3>
 
@@ -170,7 +175,7 @@ DeskLamp is a library module proposed for the
    <li><p>If you are using a POV-Ray version older than 3.7, set <a href="https://wiki.povray.org/content/Reference:Radiosity#max_sample"><code>max_sample</code></a> to a positive value in the radiosity block, and declare <a href="#Lamp_Max_Sample"><code>Lamp_Max_Sample</code></a> with that same value. For example:
     <pre>#declare Lamp_Max_Sample = 15;
 global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
-   <li><p>If you are using POV-Ray 3.7 or later, set a very high count with a small default importance. This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
+   <li><p>If you are using POV-Ray 3.7 or later and creating a hooded lamp, set a very high count with a small default importance. This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
     <pre>global_settings { radiosity { count 50000, 100000 } }
 #default { radiosity { importance 0.002 } }</pre>
     <p>Alternatively, you may do the same as for older POV-Ray versions, as described in the previous step.
@@ -266,9 +271,9 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
 
 <dl>
  <dt><code>Lamp_Radiosity</code></dt>
- <dd>If radiosity is not used, then the light reflected off the inside of the lamp hood must be simulated with an additional <code>light_source</code>. If radiosity is used with POV-Ray 3.5 or 3.6, which lack the <code>no_radiosity</code> capability, some surface brightnesses must be lowered to counter the redundant radiosity from the light bulb object. In order to do these, DeskLamp needs to know whether or not radiosity is used. It is for this reason that <code>Lamp_Radiosity</code> must be set.</dd>
+ <dd>If radiosity is not used, then the light reflected off the inside of any lamp hood must be simulated with an additional <code>light_source</code>. If radiosity is used with POV-Ray 3.5 or 3.6, which lack the <code>no_radiosity</code> capability, some surface brightnesses must be lowered to counter the redundant radiosity from the light bulb object. In order to do these, DeskLamp needs to know whether or not radiosity is used. It is for this reason that <code>Lamp_Radiosity</code> must be set.</dd>
  <dt><code>Lamp_Max_Sample</code></dt>
- <dd>If <code>max_sample</code> is set in the radiosity block, the consequently reduced radiosity must be made up with an additional <code>light_source</code>. It is for this reason that <code>Lamp_Max_Sample</code> must be set.</dd>
+ <dd>If <code>max_sample</code> is set in the radiosity block, the consequently reduced radiosity from any lamp hood must be made up with an additional <code>light_source</code>. It is for this reason that <code>Lamp_Max_Sample</code> must be set.</dd>
  <dt><code>Lamp_c_Ambient</code> default</dt>
  <dd>This default depends on the global state of the scene:
   <ul>
@@ -297,7 +302,15 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
 
 <p><a href="#toc">Table of contents</a><hr>
 
-<h2 id="Lamp_macros">Lamp Macro</h2>
+<h2 id="Lamp_macros">Lamp Macros</h2>
+
+<h3 id="Brightness">The Brightness and c_Bulb/c_Panel Arguments</h3>
+
+<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
+<p><img src="desklamp_lighting.jpg" alt="[Bulb filter illustration]">
+<p>The <code>c_Panel</code> argument behaves the same way as <code>c_Bulb</code>.
+
+<p><a href="#toc">Table of contents</a><hr>
 
 <h3 id="Lamp_Flexneck">Macro Lamp_Flexneck (Height, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness, t_Fixture, Bulb, c_Bulb, v4_Soft, Use_photons, v_Flags)</h3>
 
@@ -334,7 +347,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
  </tr><tr>
   <td><code>Status</code></td>
   <td>float</td>
-  <td><p>The on/off status. Although the switch type is binary, a value between 0 and 1 will be treated as a dimmer setting.</td>
+  <td><p>The on/off status. A value between 0 and 1 will be treated as a dimmer setting.</td>
  </tr><tr>
   <td><code>c_Light</code></td>
   <td>color</td>
@@ -342,7 +355,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
  </tr><tr>
   <td><code>Brightness</code></td>
   <td>float</td>
-  <td><p>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the bulb color (<code>c_Bulb</code>). If positive, then the bulb color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red bulb will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red bulb will yield only 234 lumens, because red is darker than white. See the illustration below for how <code>Brightness</code> interacts with <code>c_Bulb</code> and <code>c_Light</code>.
+  <td><p>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the bulb color (<code>c_Bulb</code>). If positive, then the bulb color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red bulb will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red bulb will yield only 234 lumens, because red is darker than white. See the <a href="#Brightness">illustration above</a> for how <code>Brightness</code> interacts with <code>c_Bulb</code> and <code>c_Light</code>.
    <p>The brightness calculation assumes a spherical bulb that radiates uniformly in all directions. If this assumption does not apply to your bulb object, you may want to adjust the brightness value accordingly.
    <p>Note that radiosity from the interior of the hood will add to the total illumination given by the lamp. If <code>Lamp_Radiosity</code> is <code>false</code> or if <code>Lamp_Max_Sample</code> is positive, then an additional light source will be added to replace the absent or reduced radiosity.
   </td>
@@ -366,7 +379,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
   <td><p>Area light control, for soft shadows and an extended light source. The components are:
    <dl class="inline">
     <dt><code>.x</code>
-    <dd>The size of the area light, relative to the bulb. Use 0 for sharp shadows, 1 for realistically soft shadows, and larger values for even fuzzier shadows.
+    <dd>The size of the area light, relative to the bulb. Use 0 to turn off the area light feature, yielding sharp shadows; 1 for realistically soft shadows; and larger values for even fuzzier shadows.
     <dt><code>.y</code>
     <dd>The sampling resolution of the area light, corresponding to <code>Size_1</code> and <code>Size_2</code> in the POV-Ray Reference. This applies only if the <code><code>.x</code></code> component is nonzero.
     <dt><code>.z</code>
@@ -374,6 +387,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
     <dt><code>.t</code>
     <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only, and applies only if the <code>.x</code> component is nonzero.
    </dl>
+   <p>Jitter is always used.
   </td>
  </tr><tr>
   <td><code>Use_photons</code></td>
@@ -394,7 +408,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
      </dl>
      <p>Any other values will have undefined results.
     <dt><code>.y</code> component
-    <dd>Reserved for future use. Set this to zero to ensure future compatibility.
+    <dd>A dimmer switch flag: 0 creates a binary on/off switch, and 1 creates a dimmer dial.
     <dt><code>.z</code>, <code>.t</code>, and <code>.transmit</code> components
     <dd>Reserved for future use.
    </dl>
@@ -402,10 +416,190 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
  </tr>
 </table>
 
-<h4>The Brightness and c_Bulb Arguments</h4>
+<p><a href="#toc">Table of contents</a><hr>
 
-<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
-<p><img src="desklamp_lighting.jpg" alt="[Bulb filter illustration]">
+<h3 id="Lamp_Flexneck_Rectangular">Macro Lamp_Flexneck_Rectangular (Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness, Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer)</h3>
+
+<p>A flexible neck desk lamp with a rectangular emitting panel. The lamp will be rotated and the neck automatically bent so that the lamp points at a user-specified location or direction. The light fade power is fixed at 2.
+
+<h4>Arguments</h4>
+<p>Scalar arguments will be automatically promoted to colors or vectors where necessary.
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Height</code></td>
+  <td>float</td>
+  <td><p>The height in centimeters of the unflexed fixture from the bottom of its base to the center of the emitting panel. Values of <code>Height</code> and <code>uv_Panel_size.y</code> that result in a neck length shorter than 15 are disallowed. If you are accustomed to using inches, multiply your inches value by <code>LAMP_INCH</code>. 15 centimeters is slightly less than 6 inches.</td>
+ </tr><tr>
+  <td><code>uv_Base_size</code></td>
+  <td>2-D vector</td>
+  <td><p>The width and depth in centimeters of the base of the lamp. The minimum allowed size is &lt;7, 7>, which is slightly more than 2¾&times;2¾ inches.</td>
+ </tr><tr>
+  <td><code>pv_Base</code></td>
+  <td>point vector</td>
+  <td><p>The location of the base of the fixture, using your scene’s unit of length.</td>
+ </tr><tr>
+  <td><code>v_Up</code></td>
+  <td>vector</td>
+  <td><p>The up direction for the fixture. This would be <code>y</code> for a lamp standing upright.</td>
+ </tr><tr>
+  <td><code>v_Aim</code></td>
+  <td>point or 4-D vector</td>
+  <td><p>The point at which the light is aimed, using your scene’s unit of length.
+   <p>If <code>v_Aim</code> is a 4-D vector, then after the lamp is aimed, the neck will be bent to the angle in degrees of the <code>.t</code> component. A negative value flexes downward; a positive value extends upward. The allowable range is &minus;180...180.
+   <p><strong>Cautions:</strong> If <code>v_Aim</code> is on the fixture’s vertical axis&mdash;that is, directly above or below the lamp along the direction of <code>v_Up</code>&mdash;then the final direction the lamp faces is indeterminate. If <code>v_Aim</code> is scalar, it will be interpreted as a 3-D vector.
+  </td>
+ </tr><tr>
+  <td><code>Status</code></td>
+  <td>float</td>
+  <td><p>The on/off status. A value between 0 and 1 will be treated as a dimmer setting.</td>
+ </tr><tr>
+  <td><code>c_Light</code></td>
+  <td>color</td>
+  <td><p>The color of the light. Any filter or transmit components are ignored. This color will be filtered by the color of the emitting panel.</td>
+ </tr><tr>
+  <td><code>Brightness</code></td>
+  <td>float</td>
+  <td><p>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the emitting panel color (<code>c_Panel</code>). If positive, then the emitting panel color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red emitting panel will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red emitting panel will yield only 234 lumens, because red is darker than white. See the <a href="#Brightness">illustration above</a> for how <code>Brightness</code> interacts with <code>c_Panel</code> and <code>c_Light</code>.
+  </td>
+ </tr><tr>
+  <td><code>Tightness</code></td>
+  <td>float</td>
+  <td><p>How rapidly the light intensity falls off as one moves to the side of the panel. Realistic values are 1.0 and greater. A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle. Higher values yield more directional spotlights. Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles. Negative values will result in a parse error.
+  </td>
+ </tr><tr>
+  <td><code>t_Fixture</code></td>
+  <td>texture</td>
+  <td><p>A texture for the fixture. The texture will be centered underneath the neck of the fixture and applied with the fixture facing the +<var>z</var> direction.
+  </td>
+ </tr><tr>
+  <td><code>c_Panel</code></td>
+  <td>color</td>
+  <td><p>The color of the emitting panel. Any filter or transmit components are ignored.</td>
+ </tr><tr>
+  <td><code>uv_Panel_size</code></td>
+  <td>2-D vector</td>
+  <td><p>The width and height in centimeters of the emitting surface. Values of <code>Height</code> and <code>uv_Panel_size.y</code> that result in a neck length shorter than 15 are disallowed. If you are accustomed to using inches, multiply your inches value by <code>LAMP_INCH</code>. 15 centimeters is slightly less than 6 inches.</td>
+ </tr><tr>
+  <td><code>v4_Soft</code></td>
+  <td>vector/4-tuple</td>
+  <td><p>Area light control, for soft shadows and an extended light source. The components are:
+   <dl class="inline">
+    <dt><code>.x</code>
+    <dd>The size of the area light, relative to the bulb. Use 0 to turn off the area light feature, yielding sharp shadows; 1 for realistically soft shadows; and larger values for even fuzzier shadows.
+    <dt><code>.y</code>
+    <dd>The sampling resolution of the area light in the longer dimension, corresponding to <code>Size_1</code> or <code>Size_2</code> in the POV-Ray Reference. The sampling resolution in the shorter dimension will be calculated automatically. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dt><code>.z</code>
+    <dd>The area light adaptive level. Usually 0 or 1 is sufficient. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dt><code>.t</code>
+    <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only, and applies only if the <code>.x</code> component is nonzero.
+   </dl>
+   <p>Jitter is always used.
+  </td>
+ </tr><tr>
+  <td><code>Use_photons</code></td>
+  <td>float/Boolean</td>
+  <td><p>Whether or not the light shoots photons. This works only if you have turned on photons in the <code>global_settings</code> block.</td>
+ </tr><tr>
+  <td><code>Has_dimmer</code></td>
+  <td>float/Boolean</td>
+  <td><p>A dimmer switch flag: 0 creates a binary on/off switch, and 1 creates a dimmer dial.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Flexneck_Round">Macro Lamp_Flexneck_Round (Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness, Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer)</h3>
+
+<p>A flexible neck desk lamp with a round emitting panel. The lamp will be rotated and the neck automatically bent so that the lamp points at a user-specified location or direction. The light fade power is fixed at 2.
+
+<h4>Arguments</h4>
+<p>Scalar arguments will be automatically promoted to colors or vectors where necessary.
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Height</code></td>
+  <td>float</td>
+  <td><p>The height in centimeters of the unflexed fixture from the bottom of its base to the center of the emitting panel. Values of <code>Height</code> and <code>uv_Panel_size.y</code> that result in a neck length shorter than 15 are disallowed. If you are accustomed to using inches, multiply your inches value by <code>LAMP_INCH</code>. 15 centimeters is slightly less than 6 inches.</td>
+ </tr><tr>
+  <td><code>uv_Base_size</code></td>
+  <td>float or 2-D vector</td>
+  <td><p>The diameter in centimeters of the base of the lamp. Use a 2-D vector for an oval base. The minimum allowed diameter is 7, which is slightly more than 2¾ inches.</td>
+ </tr><tr>
+  <td><code>pv_Base</code></td>
+  <td>point vector</td>
+  <td><p>The location of the base of the fixture, using your scene’s unit of length.</td>
+ </tr><tr>
+  <td><code>v_Up</code></td>
+  <td>vector</td>
+  <td><p>The up direction for the fixture. This would be <code>y</code> for a lamp standing upright.</td>
+ </tr><tr>
+  <td><code>v_Aim</code></td>
+  <td>point or 4-D vector</td>
+  <td><p>The point at which the light is aimed, using your scene’s unit of length.
+   <p>If <code>v_Aim</code> is a 4-D vector, then after the lamp is aimed, the neck will be bent to the angle in degrees of the <code>.t</code> component. A negative value flexes downward; a positive value extends upward. The allowable range is &minus;180...180.
+   <p><strong>Cautions:</strong> If <code>v_Aim</code> is on the fixture’s vertical axis&mdash;that is, directly above or below the lamp along the direction of <code>v_Up</code>&mdash;then the final direction the lamp faces is indeterminate. If <code>v_Aim</code> is scalar, it will be interpreted as a 3-D vector.
+  </td>
+ </tr><tr>
+  <td><code>Status</code></td>
+  <td>float</td>
+  <td><p>The on/off status. A value between 0 and 1 will be treated as a dimmer setting.</td>
+ </tr><tr>
+  <td><code>c_Light</code></td>
+  <td>color</td>
+  <td><p>The color of the light. Any filter or transmit components are ignored. This color will be filtered by the color of the emitting panel.</td>
+ </tr><tr>
+  <td><code>Brightness</code></td>
+  <td>float</td>
+  <td><p>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the emitting panel color (<code>c_Panel</code>). If positive, then the emitting panel color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red emitting panel will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red emitting panel will yield only 234 lumens, because red is darker than white. See the <a href="#Brightness">illustration above</a> for how <code>Brightness</code> interacts with <code>c_Panel</code> and <code>c_Light</code>.
+  </td>
+ </tr><tr>
+  <td><code>Tightness</code></td>
+  <td>float</td>
+  <td><p>How rapidly the light intensity falls off as one moves to the side of the panel. Realistic values are 1.0 and greater. A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle. Higher values yield more directional spotlights. Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles. Negative values will result in a parse error.
+  </td>
+ </tr><tr>
+  <td><code>t_Fixture</code></td>
+  <td>texture</td>
+  <td><p>A texture for the fixture. The texture will be centered underneath the neck of the fixture and applied with the fixture facing the +<var>z</var> direction.
+  </td>
+ </tr><tr>
+  <td><code>c_Panel</code></td>
+  <td>color</td>
+  <td><p>The color of the emitting panel. Any filter or transmit components are ignored.</td>
+ </tr><tr>
+  <td><code>uv_Panel_size</code></td>
+  <td>2-D vector</td>
+  <td><p>The width and height in centimeters of the emitting surface. Values of <code>Height</code> and <code>uv_Panel_size.y</code> that result in a neck length shorter than 15 are disallowed. If you are accustomed to using inches, multiply your inches value by <code>LAMP_INCH</code>. 15 centimeters is slightly less than 6 inches.</td>
+ </tr><tr>
+  <td><code>v4_Soft</code></td>
+  <td>vector/4-tuple</td>
+  <td><p>Area light control, for soft shadows and an extended light source. The components are:
+   <dl class="inline">
+    <dt><code>.x</code>
+    <dd>The size of the area light, relative to the bulb. Use 0 to turn off the area light feature, yielding sharp shadows; 1 for realistically soft shadows; and larger values for even fuzzier shadows.
+    <dt><code>.y</code>
+    <dd>The sampling resolution of the area light in the longer dimension, corresponding to <code>Size_1</code> or <code>Size_2</code> in the POV-Ray Reference. The sampling resolution in the shorter dimension will be calculated automatically. This applies only if the <code><code>.x</code></code> component is nonzero.
+     <p>Because the shorter dimension is calculated, an oblong panel may generate a warning that “Area light resolution must be at least 2, 2 for a circular area light” even if <code>.y</code> is 2 or greater.
+    <dt><code>.z</code>
+    <dd>The area light adaptive level. Usually 0 or 1 is sufficient. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dt><code>.t</code>
+    <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only, and applies only if the <code>.x</code> component is nonzero.
+   </dl>
+   <p>Jitter is always used.
+  </td>
+ </tr><tr>
+  <td><code>Use_photons</code></td>
+  <td>float/Boolean</td>
+  <td><p>Whether or not the light shoots photons. This works only if you have turned on photons in the <code>global_settings</code> block.</td>
+ </tr><tr>
+  <td><code>Has_dimmer</code></td>
+  <td>float/Boolean</td>
+  <td><p>A dimmer switch flag: 0 creates a binary on/off switch, and 1 creates a dimmer dial.</td>
+ </tr>
+</table>
 
 <p><a href="#toc">Table of contents</a><hr>
 
@@ -548,7 +742,7 @@ object
  </tr>
 </table>
 
-<p>For other unit conversions you may download and use the Object Collection module <a href="http://lib.povray.org/searchcollection/index2.php?objectName=scaleconvert&amp;contributorTag=Charles%20C">scaleconvert</a> (<a href="https://github.com/LeForgeron/PovContributions/tree/master/scaleconvert/charles%20c%201.0">scaleconvert mirror</a>). Since the base unit for DeskLamp is the centimeter, you would convert your scene’s unit to centimeters. For example, if your scene’s unit is 1 hand, you would use:
+<p>For other unit conversions you may download and use the Object Collection module <a href="https://lib.povray.org/searchcollection/index2.php?objectName=scaleconvert&amp;contributorTag=Charles%20C">scaleconvert</a> (<a href="https://github.com/LeForgeron/PovContributions/tree/master/scaleconvert/charles%20c%201.0">scaleconvert mirror</a>). Since the base unit for DeskLamp is the centimeter, you would convert your scene’s unit to centimeters. For example, if your scene’s unit is 1 hand, you would use:
 <pre>#include "scaleconvert.inc"
 #declare Lamp_Scale = ScaleConvert ("hand", "cm");</pre>
 
@@ -560,7 +754,7 @@ object
   <td><code>DESKLAMP_VERSION</code></td>
   <td>float</td>
   <td>The DeskLamp version, in case the scene file needs that information.</td>
-  <td>1.0</td>
+  <td>2.0</td>
  </tr>
 </table>
 
@@ -573,7 +767,7 @@ object
 <h2 id="About">About DeskLamp</h2>
 
 <address>
- <p>Copyright © 2022 Richard Callwood III. Some rights reserved.
+ <p>Copyright © 2022, 2024 Richard Callwood III. Some rights reserved.
  <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html" target="_blank">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
  <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 </address>
@@ -584,6 +778,14 @@ object
  <li><strong>Areas of Interest</strong>
   <ul>
    <li>Household/office
+    <ul>
+     <li>Furnishings/decor
+      <ul>
+       <li>Office
+       <li>Living space
+       <li>Bedroom
+      </ul>
+    </ul>
   </ul>
  <li><strong>Contribution Types</strong>
   <ul>
@@ -591,6 +793,7 @@ object
     <ul>
      <li>Solid (CSG-able)
     </ul>
+   <li>Materials
    <li>Textures
     <ul>
      <li>Finishes
@@ -612,17 +815,57 @@ object
  <tr>
   <td>n/a</td>
   <td>2005 March 6</td>
-  <td>An unpublished lamp module is created for a specific project.</td>
+  <td>
+   <ul>
+    <li>An unpublished lamp module is created for a specific project.
+   </ul>
+  </td>
  </tr><tr>
   <td>n/a</td>
   <td>2021 January 11</td>
-  <td>Work is started on a new module more suitable for general use.</td>
+  <td>
+   <ul>
+    <li>Work is started on a new module more suitable for general use.
+   </ul>
+  </td>
  </tr><tr>
   <td>1.0</td>
   <td>2022 September 6</td>
-  <td>The module is completed. Formal submission to the Object Collection is expected at a later date.</td>
- </tr>
+  <td>
+   <ul>
+    <li>The module is completed and uploaded to GitHub.
+   </ul>
+  </td>
+ </tr><tr>
+  <td>2.0</td>
+  <td>2024 June 4</td>
+  <td>
+   <ul>
+    <li>Bug fix: the ambient global parameter is forced to a color in one of the macros.
+    <li>A 0/1 marking is added to the lamp switch.
+    <li>A dimmer dial option is added.
+    <li>Macro <code>Lamp_Source()</code> is rewritten to accommodate additional lamp styles.
+    <li>Flat panel flex-neck lamp styles are added.
+   </ul>
+  </td>
+ </tr><!--tr>
+  <td>2.0A</td>
+  <td>20?? ??? ??</td>
+  <td>
+   <ul>
+    <li>The module is submitted to the POV-Ray Object Collection, with URLs updated accordingly.
+  </ul>
+ </tr-->
 </table>
+
+<h3>Known Bugs</h3>
+<ul>
+ <li>The surface brightness of light bulbs is too dim in
+  <a href="https://github.com/CousinRicky/POV-ShapeOfTheDay">ShapeOfTheDay</a>
+  indoor scenes under some circumstances. (The light output is unaffected by this bug.)
+ <li>Caustics (from photons) from the hooded lamp appear abnormal in ShapeOfTheDay indoor scenes.
+</ul>
+<p>It is not yet known whether or not these problems are with DeskLamp or with ShapeOfTheDay.
 
 <h3>Possible Future Development</h3>
 <ul>
@@ -637,6 +880,8 @@ object
  <li><a href="https://en.wikipedia.org/wiki/A-series_light_bulb" target="_blank">Light bulb (Wikipedia)</a>
  <li><a href="https://en.wikipedia.org/wiki/Lumen_(unit)" target="_blank">Lumen (Wikipedia)</a>
  <li><a href="https://www.energystar.gov/products/lighting_fans/light_bulbs/learn_about_brightness" target="_blank">Wattage conversion chart (Energy Star)</a>
+ <li><a href="https://lib.povray.org/searchcollection/index2.php?objectName=DeskLamp&amp;contributorTag=Cousin%20Ricky">Official DeskLamp repository</a> and <a href="https://github.com/CousinRicky/POV-DeskLamp">GitHub mirror</a>
+ <li><a href="https://news.povray.org/povray.object-collection/">Object Collection discussion</a>
 </ul>
 
 <h3 id="Acknowledgments">Acknowledgments</h3>

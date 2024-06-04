@@ -1,11 +1,11 @@
-/* desklamp_lighting.pov 1.0
+/* desklamp_lighting.pov 2.0
  * Persistence of Vision Raytracer scene description file
- * A proposed POV-Ray Object Collection Demo.
+ * A proposed POV-Ray Object Collection demo
  *
  * Demonstrates lighting output of macro desklamp.inc::Lamp_Lighting().
  *
- * Copyright (C) 2022 Richard Callwood III.  Some rights reserved.
- * This file is licensed under the terms of the CC-LGPL
+ * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * This file is licensed under the terms of the GNU-LGPL
  * a.k.a. the GNU Lesser General Public License version 2.1.
  *
  * This library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
  * ----  ----         -----
  *       2021-Mar-24  Created.
  * 1.0   2022-Sep-06  Uploaded.
+ * 2.0   2024-Jun-04  No change.
  */
 #version max (3.5, min (3.8, version));
 

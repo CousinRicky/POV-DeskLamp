@@ -1,11 +1,11 @@
-/* desklamp.inc version 1.0
+/* desklamp.inc version 2.0
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection module
  *
- * A flexible gooseneck desk lamp with a built-in light source.
+ * Desk lamps with a built-in light source that can be aimed.
  *
- * Copyright (C) 2022 Richard Callwood III.  Some rights reserved.
- * This file is licensed under the terms of the CC-LGPL
+ * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * This file is licensed under the terms of the GNU-LGPL
  * a.k.a. the GNU Lesser General Public License version 2.1.
  *
  * This library is free software; you can redistribute it and/or
@@ -18,10 +18,19 @@
  * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
  * the text of the GNU Lesser General Public License version 2.1.
  *
- * Vers  Date         Notes
- * ----  ----         -----
- *       2021-Jan-11  Started.
- * 1.0   2022-Sep-06  Completed and tested.
+ * Vers.  Date         Notes
+ * -----  ----         -----
+ *        2021-Jan-11  Started.
+ * 1.0    2022-Sep-06  Completed and tested.
+ *        2022-Sep-07  Bug fix: ambient is forced to a color in VZero() call.
+ *        2024-Apr-03  The Lamp_Source() lamp type is made case insensitive.
+ *        2024-Apr-04  A 0/1 marking is added to the lamp switch.
+ *        2024-Apr-23  A dimmer dial option is added.
+ *        2024-Apr-24  The binary switch is raised slightly, removing the need
+ *                     to do so in lamp macros.
+ *        2024-Apr-28  Lamp_Source() is rewritten to accommodate future lamp
+ *                     styles.
+ * 2.0    2024-Jun-04  Flat panel lamp types are added.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -29,9 +38,18 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 1.0;
+#declare DESKLAMP_VERSION = 2.0; #declare DESKLAMP__S_VSUFFIX = ""
+#macro Lamp__Version_s (VNum, Suffix)
+  #local lamp_H = mod (VNum * 100, 10);
+  concat
+  ( str (floor (VNum * 10) / 10, 0, 1),
+    #if (lamp_H) ".", str (lamp_H, 1, 0), #end
+    Suffix
+  )
+#end
+#declare lamp__s_Version = Lamp__Version_s (DESKLAMP_VERSION, DESKLAMP__S_VSUFFIX)
 #ifdef (View_POV_Include_Stack)
-  #debug "#include \"desklamp.inc\" //version 1.0\n"
+  #debug concat ("#include \"desklamp.inc\" //version ", lamp__s_Version, "\n")
   #debug concat ("  #version ", str (version, 0, 2), ";\n")
 #end
 
@@ -39,6 +57,20 @@
 #include "math.inc"
 #include "roundedge.inc"
 #include "transforms.inc"
+#ifdef (ROUNDEDGE_VERSION)
+  #local lamp_RE_version = ROUNDEDGE_VERSION;
+#else #ifdef (RE_Corner_join)
+  #local lamp_RE_version = 1.1;
+#else
+  #local lamp_RE_version = 1;
+#end
+#end
+#if (lamp_RE_version < 2)
+  #error concat
+  ( "DeskLamp version ", lamp__s_Version, " requires RoundEdge version 2.0 or later; RoundEdge ",
+    Lamp__Version_s (lamp_RE_version, ""), " was found."
+  )
+#end
 
 //=============== PUBLIC PARAMETERS AND REFERENCE IDENTIFIERS ==================
 
@@ -95,6 +127,7 @@
 #declare LAMP__RNECK = 0.635;           // radius of flex-neck
 #declare LAMP__W2L = ln (8) / ln (3);   // for wattage conversion curve fit
 #declare LAMP__WHITE = 0.9;             // albedo of hood interior
+#declare LAMP__HPAD = 0.2;              // thickness of pad under the lamp base
 
 // Flex-neck function magic numbers
 #local LAMP_COUNT = 3;                  // thread count per cm
@@ -104,6 +137,13 @@
 #local LAMP_rMINORN = 0.5 / LAMP_COUNT; // faked normal minor radius
 #local LAMP_ROUTER = LAMP__RNECK - LAMP_rMINOR; // outer coil radius
 #local LAMP_RINNER = 0.468;             // inner coil radius
+
+// The specular albedo formula:
+// See Parser::Parse_Finish() in parstxtr.cpp in the POV-Ray 3.7 source.
+//   x = roughness
+#declare Lamp__fn_Albedo = function (x)
+{ (1 / x + 2) / (4 * (2 - pow (2, -0.5 / x)))
+}
 
 // Return some vector perpendicular to its argument
 #macro Lamp__any_perp (V)
@@ -118,11 +158,12 @@
 // Converts a color to a string of so many significant digits;
 // filter and transmit are ignored:
 #macro Lamp__cstr (Color, Sig)
-  #local lamp_High = max (VMax (Color), VMax (-Color));
+  #local lamp_C = color Color;
+  #local lamp_High = max (VMax (lamp_C), VMax (-lamp_C));
   concat
   ( "rgb <",
     vstr
-    ( 3, Color, ", ", 0,
+    ( 3, lamp_C, ", ", 0,
       #if (lamp_High = 0) Sig - 1
       #else max (Sig - floor (log (lamp_High)) - 1, 0)
       #end
@@ -137,6 +178,7 @@
 //   z = the flex angle
 //   lamp_P0_Flex  = length of the flexible part of neck
 //   lamp_P1_Rigid = length of the rigid uppermost part of neck
+// See Lamp_Flex_Angle() in the tech manual for the derivation.
 #declare Lamp__fn_Flex = function (x, y, z, lamp_P0_Flex, lamp_P1_Rigid)
 { select
   ( -abs (z),
@@ -145,23 +187,64 @@
   )
 }
 
+// Calculate light color at brightness, unfiltered:
+#macro Lamp__get_light_color (s_Caller, c_Light, c_Bulb, Brightness, isFlat)
+  #local lamp_L = color c_Light;
+  #local lamp_B = color c_Bulb;
+  #if (Brightness = 0)
+    #local lamp_C = rgb 0;
+  #else
+    #if (Brightness > 0) // calculate lumens after filtering
+      #local lamp_Gray = Lamp_Luminance (lamp_L * lamp_B);
+      #if (lamp_Gray = 0)
+        Lamp__light_error
+        ( s_Caller, lamp_L, lamp_B, Brightness,
+          concat
+          ( "the light's filtered color (", Lamp__cstr (lamp_L * lamp_B, 4),
+            ") has luminance 0. Lumens cannot be achieved."
+          ),
+          isFlat
+        )
+      #end
+    #else // calculate lumens before filtering
+      #local lamp_Gray = Lamp_Luminance (lamp_L);
+      #if (lamp_Gray = 0)
+        Lamp__light_error
+        ( s_Caller, c_Light, c_Bulb, Brightness,
+          concat
+          ( "the light's color (", Lamp__cstr (lamp_L, 4),
+            ") has luminance 0. Lumens cannot be achieved."
+          ),
+          isFlat
+        )
+      #end
+    #end
+    #local lamp_C = abs (Brightness) * Lamp_Lumen * lamp_L / lamp_Gray;
+  #end
+  lamp_C
+#end
+
 // Check availability of features.  The retracted 3.71 is considered for the
 // sake of unofficial patches based on POV-Ray 3.7.1 (e.g., UberPOV 1.37.1.1).
 #macro Lamp__has_Fresnel() // finish-level Fresnel
   (version >= 3.71)
 #end
-#macro Lamp__has_invsq() // power light fading
+#macro Lamp__has_invsq() // true power light fading
   (#if (Lamp_371Patch) version >= 3.71 #else version >= 3.8 #end)
 #end
 
+// A compromise for reasonable specular highlights when finish-level Fresnel is unavailable.
+//   x = index of refraction
+#declare Lamp__fn_Hilite = function (x)
+{ select (x - 1.4, pow (x - 1, 1.5) * 0.1415, x * 0.142 - 0.163)
+}
+
 // Fatal error in lighting parameters
-#macro Lamp__light_error (s_Caller, c_Light, c_Bulb, Brightness, s_Message)
-  #local lamp_L = color c_Light;
-  #local lamp_B = color c_Bulb;
+#macro Lamp__light_error (s_Caller, c_Light, c_Bulb, Brightness, s_Message, isFlat)
   #warning concat
-  ( s_Caller, "(): c_Light = ", Lamp__cstr (lamp_L, 4),
-    ", c_Bulb = ", Lamp__cstr (lamp_B, 4),
-    ", Brightness = ", Lamp__str (Brightness, 4), "\n"
+  ( s_Caller, "(): c_Light = ", Lamp__cstr (color lamp_L, 4),
+    #if (isFlat) ", c_Panel = ", #else ", c_Bulb = ", #end
+    Lamp__cstr (color lamp_B, 4), ", Brightness = ", Lamp__str (Brightness, 4), "\n"
   )
   #error concat (s_Caller, "(): ", s_Message)
 #end
@@ -173,6 +256,21 @@
   #else
     str (Number, 1, max (Sig - floor (log (abs (Number))) - 1, 0))
   #end
+#end
+
+// Converts a 2-D vector to a string of so many significant digits:
+#macro Lamp__uvstr (V, Sig)
+  #local lamp_High = max (abs (V.u), abs (V.v));
+  concat
+  ( "<",
+    vstr
+    ( 2, V, ", ", 0,
+      #if (lamp_High = 0) Sig - 1
+      #else max (Sig - floor (log (lamp_High)) - 1, 0)
+      #end
+    ),
+    ">"
+  )
 #end
 
 // Converts a 3-D or 4-D vector to a string of so many significant digits:
@@ -188,6 +286,438 @@
     ),
     ">"
   )
+#end
+
+//--------------------- DIMMER DIAL ------------------------
+
+// arbitrary magic numbers
+#declare LAMP__DIAL_GAP = 0.04;
+#declare LAMP__DIAL_rEDGE = 1/32;
+#declare LAMP__DIAL_RINNER = 12/16;
+#declare LAMP__DIAL_RINNER_BOUND = 11/16;
+#declare LAMP__DIAL_W2PTR = 1/16;
+#declare LAMP__DIAL_MAXG = 1.26;
+#declare LAMP__DIAL_MGPTR = 2.64;
+#local LAMP_DIAL_NKNURLS = 60;
+#local LAMP_DIAL_DKNURL = 1/48;
+#local LAMP_DIAL_INSET = 1/8;
+
+// computed values
+#local lamp_dial_d2Knurl = LAMP_DIAL_DKNURL / 2;
+#local lamp_dial_MK = LAMP_DIAL_INSET / (LAMP__DIAL_GAP - 1);
+#local lamp_dial_BK = 1 - lamp_dial_d2Knurl - LAMP_DIAL_INSET - lamp_dial_MK;
+#local lamp_dial_d2Ptr = LAMP_DIAL_INSET / 2 + lamp_dial_d2Knurl;
+#local lamp_dial_MP = (lamp_dial_d2Ptr - lamp_dial_d2Knurl) / (1 - LAMP__DIAL_GAP);
+#local lamp_dial_BP = lamp_dial_d2Ptr - lamp_dial_MP;
+#local lamp_dial_aPtr = 2 * pi / LAMP_DIAL_NKNURLS;
+#local lamp_dial_PtrBound = (1 - LAMP_DIAL_DKNURL) * lamp_dial_aPtr;
+#local lamp_dial_PtrzBound = sqrt
+(  pow (1 - LAMP_DIAL_INSET - LAMP_DIAL_DKNURL - LAMP__DIAL_rEDGE, 2)
+ - pow (lamp_dial_PtrBound, 2)
+);
+
+// isosurfaces
+#declare Lamp__fn_Main_knurl = function
+{ f_sphere
+  ( x, 0, z,
+    (lamp_dial_MK * y + lamp_dial_BK)
+    - cos (max (abs (atan2 (x, z)), lamp_dial_aPtr) * LAMP_DIAL_NKNURLS)
+    * lamp_dial_d2Knurl
+  )
+}
+#declare Lamp__fn_Dial_top = function
+{ max (Lamp__fn_Main_knurl (x, y, z), -f_sphere (x, 0, z, LAMP__DIAL_RINNER))
+}
+#declare Lamp__fn_Dial_pointer0 = function (x, y, z, lamp_P0_Angle)
+{ f_sphere
+  ( x, 0, z,
+    select
+    ( lamp_dial_aPtr - abs (lamp_P0_Angle),
+      (lamp_dial_MK * y + lamp_dial_BK)
+        - cos (lamp_P0_Angle * LAMP_DIAL_NKNURLS) * lamp_dial_d2Knurl,
+      1 - (lamp_dial_MP * y + lamp_dial_BP)
+        + (sqrt ((cos (lamp_P0_Angle * LAMP_DIAL_NKNURLS / 2) + 1) / 2) * 2 - 1)
+        * (lamp_dial_MP * y + lamp_dial_BP)
+    )
+  )
+}
+#declare Lamp__fn_Dial_pointer = function
+{ Lamp__fn_Dial_pointer0 (x, y, z, atan2 (x, z))
+}
+
+#declare lamp__Dimmer_knob = union
+{ isosurface // top of dial
+  { function
+    { sqrt
+      (  RE_fn_Blob2 (-Lamp__fn_Dial_top (x, y, z), LAMP__DIAL_rEDGE)
+        + RE_fn_Blob2 (1 - y, LAMP__DIAL_rEDGE)
+      ) - 1
+    }
+    contained_by { box { <-1, 1 - LAMP__DIAL_rEDGE, -1>, 1 } }
+    max_gradient LAMP__DIAL_MAXG / LAMP__DIAL_rEDGE
+  }
+  // pointer ridge on top of dial
+  RE_Unequal_side_end
+  ( <-LAMP__DIAL_W2PTR, 1 - LAMP__DIAL_rEDGE, 0>,
+    <LAMP__DIAL_W2PTR, 1, LAMP__DIAL_RINNER_BOUND>,
+    LAMP__DIAL_rEDGE, LAMP__DIAL_rEDGE, no, y, -z
+  )
+  isosurface // blob top pointer ridge with top of dial
+  { function
+    { sqrt
+      (  RE_fn_Blob2
+         ( sqrt
+           (  RE_fn_Blob2 (Lamp__fn_Dial_top (x, y, z), LAMP__DIAL_rEDGE)
+            + RE_fn_Blob2 (abs (x) - LAMP__DIAL_W2PTR, LAMP__DIAL_rEDGE)
+           ) - 1,
+           1
+         )
+       + RE_fn_Blob2 (1 - y, LAMP__DIAL_rEDGE)
+      ) - 1
+    }
+    contained_by
+    { box
+      { < -LAMP__DIAL_W2PTR - LAMP__DIAL_rEDGE,
+          1 - LAMP__DIAL_rEDGE,
+          LAMP__DIAL_RINNER_BOUND
+        >,
+        < LAMP__DIAL_W2PTR + LAMP__DIAL_rEDGE,
+          1,
+          ( LAMP__DIAL_W2PTR > lamp_dial_PtrBound?
+            LAMP__DIAL_RINNER + LAMP__DIAL_rEDGE: lamp_dial_PtrzBound
+          )
+        >
+      }
+    }
+    max_gradient 1 / LAMP__DIAL_rEDGE
+  }
+  isosurface // main part of dial
+  { function { Lamp__fn_Main_knurl (x, y, z) }
+    contained_by
+    { box { <-1, LAMP__DIAL_GAP, -1>, <1, 1 - LAMP__DIAL_rEDGE, 1> }
+    }
+    max_gradient LAMP__DIAL_MAXG
+  }
+  isosurface // pointer ridge at front of dial
+  { function { Lamp__fn_Dial_pointer (x, y, z) }
+    contained_by
+    { box
+      { <-lamp_dial_PtrBound, LAMP__DIAL_GAP, lamp_dial_PtrzBound>,
+        <lamp_dial_PtrBound, 1 - LAMP__DIAL_rEDGE, 1>
+      }
+    }
+    max_gradient LAMP__DIAL_MGPTR
+  }
+  isosurface // blob front pointer ridge with top of dial
+  { function
+    { sqrt
+      (  RE_fn_Blob2 (-Lamp__fn_Dial_pointer (x, y, z), LAMP__DIAL_rEDGE)
+        + RE_fn_Blob2 (1 - y, LAMP__DIAL_rEDGE)
+      ) - 1
+    }
+    contained_by
+    { box
+      { <-lamp_dial_PtrBound, 1 - LAMP__DIAL_rEDGE, lamp_dial_PtrzBound>,
+        <lamp_dial_PtrBound, 1, 1>
+      }
+    }
+    max_gradient LAMP__DIAL_MGPTR / LAMP__DIAL_rEDGE
+  }
+}
+
+//---------------------- FLAT PANEL ------------------------
+
+#declare LAMP__PANEL_IOR = 1.5;           // average plastic, pending more data
+#declare LAMP__RMARGIN = LAMP_INCH * 0.5;  // structure around emitting panel
+#declare LAMP__rEDGE_PANEL = 0.2;           // rounded edge radius
+#declare LAMP__HEND = LAMP_INCH * 0.75;      // length of rigid ends of neck
+#declare LAMP__rEDGE_PBASE = LAMP_INCH * 3/8; // rounded edge radius of base
+#declare LAMP__HPANEL_BASE = LAMP_INCH * 0.75; // height of base of lamp
+
+// Workhorse macro to handle both rectangular and round panels
+#macro Lamp__flexneck_panel
+( s_Caller, isRound,
+  Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness,
+  Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer
+)
+  Lamp_Warnings()
+ // Parameter preparations
+  #local lamp_uv_Base = uv_Base_size + <0,0>;
+  #local lamp_v_Aim = v_Aim + <0,0,0>;      // Be sure it's not a scalar...
+  #local lamp_4D = Lamp_Has4D (lamp_v_Aim); // ... before testing for .t
+  #local lamp_L = color c_Light;
+  #local lamp_B = color c_Panel;
+  #local lamp_v_Soft = v4_Soft + <0,0,0,0>;
+  #local lamp_uv_Panel = uv_Panel_size + <0,0>;
+  #local lamp_Panel2 = lamp_uv_Panel / 2;
+  #local lamp_Base2 = lamp_uv_Base / 2;
+ // Local magic numbers, cm
+  #local LAMP_MIN_NECK = 15;
+  #local LAMP_MIN_BASE = 7;
+ // Parameter checks
+  #local lamp_lNeck = Height - (LAMP__HPANEL_BASE + LAMP__RMARGIN + lamp_Panel2.y);
+  #if (lamp_lNeck < LAMP_MIN_NECK)
+    #error concat
+    ( s_Caller, "(): Height ", str (Height, 0, 3), " and uv_Panel_size.y ",
+      str (lamp_uv_Panel.y, 0, 3), " yield a neck length of ", str (lamp_lNeck, 0, 3),
+      "; it must be ", str (LAMP_MIN_NECK, 0, 0), " or greater."
+    )
+  #end
+  #if (min (lamp_uv_Base.x, lamp_uv_Base.y) < LAMP_MIN_BASE)
+    #error concat
+    ( s_Caller, "(): uv_Base_size = <", vstr (2, lamp_uv_Base, ", ", 0, 3),
+      ">; it must be <", vstr (2, <LAMP_MIN_BASE, LAMP_MIN_BASE>, ", ", 0, 0), "> or greater."
+    )
+  #end
+  #if (Tightness < 0)
+    #error concat
+    ( s_Caller, "(): Tightness = ", str (Tightness, 0, 3), "; it must be non-negative."
+    )
+  #end
+  #if (lamp_uv_Panel.x <= 0 | lamp_uv_Panel.y <= 0)
+    #error concat
+    ( s_Caller, "(): uv_Panel_size = ", Lamp__uvstr (lamp_uv_Panel, 4),
+      "; both components must be positive."
+    )
+  #end
+  #if (lamp_v_Soft.x & lamp_v_Soft.y < 2)
+    #error concat
+    ( s_Caller, "(): v4_Soft.y is set to ", Lamp__str (lamp_v_Soft.y, 4),
+      "; it must be 2 or more."
+    )
+  #end
+ // Derived neck dimensions, cm
+  #local lamp_lFlex = // Length of flexible portion
+    min (LAMP_INCH * 8, /* no longer than 8 inches */ lamp_lNeck - 2 * LAMP__HEND);
+  #local lamp_hRigid = LAMP__HEND + LAMP__RMARGIN + lamp_Panel2.y; // Upper rigid to panel center
+  #local lamp_hBottom = lamp_lNeck - LAMP__HEND - lamp_lFlex; // Length of lower rigid portion
+  #local lamp_zNeck = // Offset from center of base
+    -min (lamp_Base2.y / 2, lamp_Base2.y - 2 * LAMP__RNECK - LAMP__rEDGE_PBASE);
+ // Determine rotation for lamp orientation
+  #local lamp_x_Position = Lamp_Rotation_Trans (s_Caller, pv_Base, v_Up, v_Aim)
+  #local lamp_pv_Aim_rotated =
+    Lamp_Scale * vtransform (lamp_v_Aim, transform { lamp_x_Position inverse });
+ // Determine flex of neck
+  #if (lamp_4D)
+    Lamp_Check (s_Caller, lamp_v_Aim.t, "v_Aim.t", -180, 180)
+    #local lamp_Flexd = -lamp_v_Aim.t;
+    #local lamp_Flex = radians (lamp_Flexd);
+  #else
+    #local lamp_Flex = -Lamp_Flex_Angle
+    ( lamp_lFlex, lamp_hRigid,
+      <lamp_pv_Aim_rotated.z - lamp_zNeck, lamp_pv_Aim_rotated.y - lamp_hBottom - LAMP__HPANEL_BASE>
+    );
+    Lamp_Check_Flex (s_Caller, -lamp_Flex, Height, pv_Base, v_Up, v_Aim)
+    #local lamp_Flexd = degrees (lamp_Flex);
+  #end
+  //
+  #if (lamp_Flex != 0)
+    #local lamp_sRoC = lamp_lFlex / lamp_Flex; // signed radius of curvature
+  #end
+  #local lamp_x_Light = transform
+  { translate lamp_hRigid * y
+    #if (lamp_Flex = 0)
+      translate lamp_lFlex * y
+    #else
+      translate -lamp_sRoC * z
+      rotate lamp_Flexd * x
+      translate lamp_sRoC * z
+    #end
+    translate <0, LAMP__HPANEL_BASE + lamp_hBottom, lamp_zNeck>
+    scale 1 / Lamp_Scale
+    transform { lamp_x_Position }
+  }
+ // Determine lighting
+  #local lamp_IsLit = (Status != 0 & Brightness != 0 & !VZero (lamp_L));
+  #local lamp_c_Light = rgb 0;
+  #local lamp_Brightness = 0;
+  #local lamp_Fade = 0;
+  #local lamp_c_Surface = rgb 0;
+  #if (lamp_IsLit)
+    Lamp_Lighting_Flat
+    ( s_Caller, lamp_L, lamp_B, lamp_uv_Panel, isRound, Tightness, Brightness * Status,
+      lamp_c_Light, lamp_Brightness, lamp_Fade, lamp_c_Surface
+    )
+  #end
+
+ // Assembly
+  union
+  {// panel + upper rigid neck
+    #local lamp_Size2 =
+    < lamp_Panel2.x + LAMP__RMARGIN,
+      lamp_Panel2.y + LAMP__RMARGIN,
+      LAMP__RNECK
+    >;
+    #local lamp_isOval = (isRound & lamp_Size2.x != lamp_Size2.y);
+    #local lamp_Panel =
+      #if (isRound)
+        cylinder
+        { 0, z, 1
+          scale <lamp_Panel2.x, lamp_Panel2.y, LAMP__RNECK>
+        }
+      #else
+        box
+        { -<1, 1, 0>, 1
+          scale <lamp_Panel2.x, lamp_Panel2.y, LAMP__RNECK>
+        }
+      #end
+    union
+    { difference
+      { #if (lamp_isOval)
+          union
+          { cylinder
+            { -z, z, 1
+              scale <lamp_Size2.x, lamp_Size2.y, LAMP__RNECK - LAMP__rEDGE_PANEL>
+            }
+            cylinder
+            { -z, z, 1
+              scale
+              < lamp_Size2.x - LAMP__rEDGE_PANEL,
+                lamp_Size2.y - LAMP__rEDGE_PANEL,
+                LAMP__RNECK
+              >
+            }
+            // omit rounded edges for faster difference
+          }
+        #else #if (isRound)
+          RE_Cylinder (-LAMP__RNECK * z, LAMP__RNECK * z, lamp_Size2.x, LAMP__rEDGE_PANEL, no)
+        #else
+          RE_Unequal (-lamp_Size2, lamp_Size2, LAMP__RMARGIN, LAMP__rEDGE_PANEL, no, z)
+        #end
+        #end
+        object
+        { lamp_Panel
+          translate 0.001 * z // Avoid coincident surfaces.
+          // Apply the material, in case the panel itself has no_reflection:
+          Lamp_Panel_Material (0, lamp_B, 0.25, LAMP__PANEL_IOR, Tightness)
+        }
+      }
+      // if oval panel, then add rounded edges:
+      #if (lamp_isOval)
+        #local lamp_Edge = RE_Elliptorus_mesh
+        ( lamp_Size2.x - LAMP__rEDGE_PANEL, lamp_Size2.y - LAMP__rEDGE_PANEL,
+          LAMP__rEDGE_PANEL, 60, 16
+        )
+        object { lamp_Edge rotate 90 * x translate (LAMP__RNECK - LAMP__rEDGE_PANEL) * z }
+        object { lamp_Edge rotate 90 * x translate (LAMP__rEDGE_PANEL - LAMP__RNECK) * z }
+      #end
+      object
+      { lamp_Panel
+        translate -0.001 * z // Avoid interference with light source.
+        Lamp_Panel_Material (lamp_c_Surface, lamp_B, 0.25, LAMP__PANEL_IOR, Tightness)
+        #if (lamp_IsLit)
+          #if (!Lamp_Reflect) no_reflection #end
+          #if (version >= 3.7) no_radiosity #end
+        #end
+      }
+      cylinder { -lamp_hRigid * y, (LAMP__rEDGE_PANEL - lamp_Size2) * y, LAMP__RNECK }
+      //@@ to do: smooth join neck to panel
+      #if (lamp_IsLit & lamp__Dbg_aim) // narrow beam for debugging
+        light_source
+        { LAMP__RNECK * z, lamp_c_Light * lamp__Dbg_aim
+          cylinder point_at LAMP__RNECK * 100 * z
+          radius 1 / Lamp_Scale falloff 1.5 / Lamp_Scale
+        }
+      #end
+      texture { t_Fixture scale Lamp_Scale translate -Height * y }
+      transform { lamp_x_Light }
+    }
+   // flexible neck
+    object
+    { Lamp_Smooth_Neck
+      ( lamp_lFlex, LAMP__RNECK, lamp_Flexd,
+        texture
+        { t_Fixture
+          scale Lamp_Scale
+          translate <0, -LAMP__HPANEL_BASE - lamp_hBottom, 0>
+        }
+      )
+      translate <0, LAMP__HPANEL_BASE + lamp_hBottom, lamp_zNeck>
+      scale 1 / Lamp_Scale
+      transform { lamp_x_Position }
+    }
+   // lower part of lamp
+    union
+    { #if (!isRound)
+        RE_Unequal_end // base
+        ( <lamp_Base2.x, LAMP__HPANEL_BASE, lamp_Base2.y>,
+          <-lamp_Base2.x, LAMP__HPAD, -lamp_Base2.y>,
+          LAMP__RMARGIN, LAMP__rEDGE_PBASE, no, y
+        )
+      #else #if (lamp_Base2.x = lamp_Base2.y)
+        RE_Cylinder_end (LAMP__HPANEL_BASE * y, LAMP__HPAD * y, lamp_Base2.x, LAMP__rEDGE_PBASE, no)
+      #else
+        cylinder
+        { (LAMP__HPANEL_BASE - LAMP__rEDGE_PBASE) * y, LAMP__HPAD * y, 1
+          scale <lamp_Base2.x, 1, lamp_Base2.y>
+        }
+        cylinder
+        { LAMP__HPANEL_BASE * y, LAMP__HPANEL_BASE / 2 * y, 1
+          scale <lamp_Base2.x - LAMP__rEDGE_PBASE, 1, lamp_Base2.y - LAMP__rEDGE_PBASE>
+        }
+        object
+        { RE_Elliptorus_mesh
+          ( lamp_Base2.x - LAMP__rEDGE_PBASE, lamp_Base2.y - LAMP__rEDGE_PBASE,
+            LAMP__rEDGE_PBASE, 60, 24
+          )
+          translate (LAMP__HPANEL_BASE - LAMP__rEDGE_PBASE) * y
+        }
+      #end
+      #end
+      object // rubber pad
+      { #if (isRound)
+          cylinder { 0, y, 1 scale <lamp_Base2.x, LAMP__HPAD, lamp_Base2.y> }
+        #else
+          RE_Box_y
+          ( <lamp_Base2.x, LAMP__HPAD, lamp_Base2.y>,
+            <-lamp_Base2.x, 0, -lamp_Base2.y>,
+            LAMP__RMARGIN, no
+          )
+        #end
+        texture
+        { finish { Lamp_Finish_Base (1, 1) }
+          pigment { rgb 0.03 }
+          normal { quilted -1 scale 0.15 translate (LAMP__HPAD - 0.15) / 2 }
+        }
+      }
+      object // switch
+      { #if (Has_dimmer)
+          Lamp_Dimmer()
+          rotate (180 + Status * 324) * y
+        #else
+          Lamp_Switch (Status)
+          rotate 180 * y
+        #end
+        translate
+        < 0,
+          LAMP__HPANEL_BASE,
+          max (lamp_Base2.y - 1.25 * LAMP_INCH, 0.5 * LAMP_INCH)
+        >
+      }
+      union // lower rigid neck
+      { RE_Round_join (LAMP__RNECK, LAMP__RNECK)
+        cylinder { LAMP__RNECK * y, lamp_hBottom * y, LAMP__RNECK }
+        translate <0, LAMP__HPANEL_BASE, lamp_zNeck>
+      }
+      texture { t_Fixture scale Lamp_Scale translate lamp_zNeck * z }
+      scale 1 / Lamp_Scale
+      transform { lamp_x_Position }
+    }
+   // light source and optional verbosity
+    #if (lamp_IsLit)
+      #local lamp_Res = Lamp_Area_Res (lamp_uv_Panel, lamp_v_Soft.y);
+      // For what reason I cannot discern, failure to reference lamp_c_Light prior
+      // to passing it to Lamp_Source() sometimes causes v3.6 to zero it out.
+      #local lamp_Dummy = lamp_c_Light;
+      Lamp_Source
+      ( s_Caller, LAMP__RNECK * z, lamp_c_Light * lamp_Brightness, lamp_Fade,
+        lamp_v_Soft.x * lamp_uv_Panel, <lamp_Res.x, lamp_Res.y, lamp_v_Soft.z, lamp_v_Soft.t>,
+        Tightness, Use_photons,
+        #if (isRound) "flat round", #else "flat rectangular", #end
+        0, lamp_x_Light
+      )
+    #end
+  }
 #end
 
 //---------------------- HOOD PARTS ------------------------
@@ -382,6 +912,19 @@
 
 //============================== PUBLIC MACROS =================================
 
+#macro Lamp_Area_Res (uv_Area, Greater_res)
+( #local lamp_Area = uv_Area + <0,0>;
+  #local lamp_Greater = floor (Greater_res + 0.5);
+  #if (lamp_Area.x > lamp_Area.y)
+    <lamp_Greater, max (floor (Greater_res * lamp_Area.y / lamp_Area.x + 0.5), 1)>
+  #else
+    <max (floor (Greater_res * lamp_Area.x / lamp_Area.y + 0.5), 1), lamp_Greater>
+  #end
+)
+#end
+
+//----------------------------------------------------------
+
 #macro Lamp_Bulb_Material (c_Light, c_Bulb, Glossy)
   #local lamp_L = color c_Light filter 0 transmit 0;
   #local LAMP_DIFFUSE = 0.75; // affects pigment, but not glow intensity
@@ -389,6 +932,8 @@
   // Fresnel+conserve_energy compromises the surface glow brightness,
   // so calculate Fresnel to compensate:
   #local lamp_Fresnel = (Glossy? pow ((1 - LAMP_N) / (1 + LAMP_N), 2): 0);
+  #local lamp_Ambient = LAMP_DIFFUSE * Lamp_c_Ambient / Lamp_Diffuse;
+  #local lamp_Emission = lamp_L / (1 - lamp_Fresnel);
   material
   { texture
     { pigment { color c_Bulb filter 0 transmit 0 }
@@ -399,8 +944,23 @@
           #if (!Lamp_Reflect) specular albedo 1 roughness 0.001 #end
         #end
         diffuse LAMP_DIFFUSE
-        ambient LAMP_DIFFUSE * Lamp_c_Ambient / Lamp_Diffuse
-        #if (version < 3.7) + #else emission #end lamp_L / (1 - lamp_Fresnel)
+        ambient lamp_Ambient
+        #if (version < 3.7) + #else emission #end lamp_Emission
+        #if (lamp__Dbg_fade)
+          #debug concat
+          ( "Lamp_Bulb_Material (", Lamp__cstr (c_Light, 4), ", ",
+            Lamp__cstr (c_Bulb, 4), ", ", str (Glossy, 0, 1), ")\n"
+          )
+          #debug concat ("  finish\n  { diffuse ", str (LAMP_DIFFUSE, 0, 3), "\n    ambient ")
+          #if (version < 3.7)
+            #debug concat (Lamp__cstr (lamp_Ambient + lamp_Emission, 4), "\n")
+          #else
+            #debug concat
+            ( Lamp__cstr (lamp_Ambient, 4) "\n    emission ", Lamp__cstr (lamp_Emission, 4), "\n"
+            )
+          #end
+          #debug "  }\n"
+        #end
       }
     }
     #if (!Lamp__has_Fresnel() & Glossy)
@@ -429,6 +989,20 @@
 
 //----------------------------------------------------------
 
+#macro Lamp_Check_Flex (s_Caller, Flex, Height, pv_Base, v_Up, v_Aim)
+  #if (Flex > pi)
+    #warning concat
+    ( "Height = ", Lamp__str (Height, 4),
+      ", pv_Base = ", Lamp__vstr (pv_Base + <0,0,0>, 4),
+      ", v_Up = ", Lamp__vstr (v_Up + <0,0,0>, 4),
+      ", v_Aim = ", Lamp__vstr (v_Aim + <0,0,0>, 4)
+    )
+    #error concat (s_Caller, "(): The lamp cannot be aimed at the given point.")
+  #end
+#end
+
+//----------------------------------------------------------
+
 #macro Lamp_Coil_Normal (Length, Flex, t_Texture)
   Lamp_Check ("Lamp_Coil_Normal", Flex, "Flex", -180, 180)
   #if (Flex = 0)
@@ -449,28 +1023,18 @@
     #local lamp_Less = lamp_RoC - LAMP__RNECK;
     #local lamp_Sin = sin (lamp_Flex);
     #local lamp_Cos = cos (lamp_Flex);
+    #local lamp_Sgn = select (Flex, -1, 1);
     intersection
     { torus { lamp_RoC, LAMP__RNECK rotate 90 * z }
       #if (mod (Flex, 90) != 0) plane { y, 0 rotate Flex * x } #end
-      #if (Flex > 0)
         box
-        { <-LAMP__RNECK, 0, -lamp_More>,
-          #if (Flex < 90)
-            <LAMP__RNECK, lamp_More * lamp_Sin, -lamp_Less * lamp_Cos>
+        { <-LAMP__RNECK, 0, -lamp_Sgn * lamp_More>,
+          #if (abs (Flex) < 90)
+            <LAMP__RNECK, lamp_Sgn * lamp_More * lamp_Sin, -lamp_Sgn * lamp_Less * lamp_Cos>
           #else
-            <LAMP__RNECK, lamp_More, -lamp_More * lamp_Cos>
+            <LAMP__RNECK, lamp_More, -lamp_Sgn * lamp_More * lamp_Cos>
           #end
         }
-      #else
-        box
-        { <-LAMP__RNECK, 0, lamp_More>,
-          #if (Flex > -90)
-            <LAMP__RNECK, -lamp_More * lamp_Sin, lamp_Less * lamp_Cos>
-          #else
-            <LAMP__RNECK, lamp_More, lamp_More * lamp_Cos>
-          #end
-        }
-      #end
       texture
       { t_Texture
         normal
@@ -484,7 +1048,7 @@
           slope_map { Lamp_sm_Coil }
         }
       }
-      translate #if (Flex < 0) - #end lamp_RoC * z
+      translate lamp_Sgn * lamp_RoC * z
     }
   #end
 #end
@@ -515,6 +1079,60 @@
 
 #macro Lamp_Colour (Colour)
   Lamp_Color (Colour)
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Dimmer()
+  #local lamp_T = texture
+  { finish
+    { Lamp_Finish_Base (1, 1)
+      specular 0.215 roughness 0.03
+    }
+    pigment { rgb 0.015 }
+  }
+  union
+  { object
+    { lamp__Dimmer_knob
+      texture
+      { object
+        { union
+          { box
+            { <-LAMP__DIAL_W2PTR, 1.001 - LAMP__DIAL_rEDGE, 0>,
+              <LAMP__DIAL_W2PTR, 1.001, LAMP__DIAL_RINNER>
+            }
+            box
+            { <-LAMP__DIAL_W2PTR, 0, LAMP__DIAL_RINNER>,
+              <LAMP__DIAL_W2PTR, 1.001, 1.001>
+            }
+          }
+          texture
+          { lamp_T
+            normal
+            { object
+              { cylinder { 0, y, LAMP__DIAL_RINNER }
+                normal { bumps 0 } // sides and top rim
+                normal { bumps 0.3 scale 0.02 } // top surface
+              }
+            }
+          }
+          texture { lamp_T pigment { rgb 0.8 } } // pointer
+        }
+      }
+    }
+    cylinder // connecting rod
+    { -y, LAMP__DIAL_GAP * y, 1/8
+      texture
+      { pigment { rgb <0.53, 0.51, 0.49> }
+        finish
+        { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP)
+          reflection { 0.9 metallic }
+          #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
+        }
+      }
+    }
+    scale LAMP_INCH / 2
+  }
 #end
 
 //----------------------------------------------------------
@@ -592,7 +1210,7 @@
   #local LAMP_MIN_HT = 30;
   #if (Height < LAMP_MIN_HT)
     #error concat
-    ( lamp_This, "(): Height is set to ", Lamp__str (Height, 6),
+    ( lamp_This, "(): Height is set to ", Lamp__str (Height, 4),
       "; it must be ", str (LAMP_MIN_HT, 0, 0), " or more."
     )
   #end
@@ -603,13 +1221,12 @@
   #local lamp_v_Soft = v4_Soft + <0,0,0,0>;
   #if (lamp_v_Soft.x & lamp_v_Soft.y < 2)
     #error concat
-    ( lamp_This, "(): v4_Soft.y is set to ", Lamp__str (lamp_v_Soft.y, 6),
+    ( lamp_This, "(): v4_Soft.y is set to ", Lamp__str (lamp_v_Soft.y, 4),
       "; it must be 2 or more."
     )
   #end
   #local lamp_v_Flags = v_Flags + <0,0,0,0>;
  // Local magic numbers, cm
-  #local LAMP_HPAD = 0.2;
   #local LAMP_HBASE = LAMP_INCH * 1.5;
   #local LAMP_RBASE = LAMP_INCH * 3;
   #local LAMP_ZOFS = -LAMP_INCH;
@@ -628,27 +1245,9 @@
   #local lamp_hBottom =
     Height - (LAMP__R1HOOD - lamp_Flatten) - LAMP__HTOP - lamp_lFlex - LAMP_HBASE;
  // Determine rotation for lamp orientation
-  #local lamp_Wrn_up = no;
-  #local lamp_Wrn_aim = no;
-  #local lamp_x_Position = Lamp_Orient_Trans (pv_Base, v_Up, v_Aim, lamp_Wrn_up, lamp_Wrn_aim)
+  #local lamp_x_Position = Lamp_Rotation_Trans (lamp_This, pv_Base, v_Up, v_Aim)
   #local lamp_pv_Aim_rotated =
     Lamp_Scale * vtransform (lamp_v_Aim, transform { lamp_x_Position inverse });
-  #if (lamp_Wrn_up)
-    #warning concat
-    ( lamp_This, "(): the null vector was used for v_Up. The y vector is substituted."
-    )
-  #end
-  #if (lamp_Wrn_aim)
-    #warning concat
-    ( "pv_Base = ", Lamp__vstr (pv_Base + <0,0,0>, 4),
-      ", v_Up = ", Lamp__vstr (v_Up + <0,0,0>, 4),
-      ", v_Aim = ", Lamp__vstr (lamp_v_Aim, 4)
-    )
-    #warning concat
-    ( lamp_This,
-      "(): v_Aim is directly above or below the lamp; the lamp's direction is indeterminate."
-    )
-  #end
  // Determine flex of neck
   #if (lamp_4D)
     Lamp_Check (lamp_This, lamp_v_Aim.t, "v_Aim.t", -180, 180)
@@ -659,15 +1258,7 @@
     ( lamp_lFlex, LAMP__R1HOOD + LAMP__HTOP - lamp_Flatten,
       <lamp_pv_Aim_rotated.z - LAMP_ZOFS, lamp_pv_Aim_rotated.y - lamp_hBottom - LAMP_HBASE>
     );
-    #if (-lamp_Flex > pi)
-      #warning concat
-      ( "Height = ", Lamp__str (Height, 4),
-        ", pv_Base = ", Lamp__vstr (pv_Base + <0,0,0>, 4),
-        ", v_Up = ", Lamp__vstr (v_Up + <0,0,0>, 4),
-        ", v_Aim = ", Lamp__vstr (lamp_v_Aim, 4)
-      )
-      #error concat (lamp_This, "(): The lamp cannot be aimed at the given point.")
-    #end
+    Lamp_Check_Flex (lamp_This, -lamp_Flex, Height, pv_Base, v_Up, v_Aim)
     #local lamp_Flexd = degrees (lamp_Flex);
   #end
   //
@@ -940,20 +1531,25 @@
         texture { lamp_t_Metal }
       }
       object // switch
-      { Lamp_Switch (Status)
-        scale <1, 1, -1>
-        translate <0, LAMP_HBASE + 0.16, LAMP_RBASE - LAMP_INCH * 1.5>
+      { #if (lamp_v_Flags.y)
+          Lamp_Dimmer()
+          rotate (180 + Status * 324) * y
+        #else
+          Lamp_Switch (Status)
+          rotate 180 * y
+        #end
+        translate <0, LAMP_HBASE, LAMP_RBASE - LAMP_INCH * 1.5>
       }
       object // base
-      { RE_Cylinder_end (LAMP_HBASE * y, LAMP_HPAD * y, LAMP_RBASE, 1.27, no)
+      { RE_Cylinder_end (LAMP_HBASE * y, LAMP__HPAD * y, LAMP_RBASE, 1.27, no)
         texture { t_Fixture scale Lamp_Scale translate LAMP_HBASE * y }
       }
       cylinder // rubber pad
-      { 0, LAMP_HPAD * y, LAMP_RBASE
+      { 0, LAMP__HPAD * y, LAMP_RBASE
         texture
         { lamp_t_Exterior
           pigment { rgb 0.03 }
-          normal { quilted -1 scale 0.15 translate (LAMP_HPAD - 0.15) / 2 }
+          normal { quilted -1 scale 0.15 translate (LAMP__HPAD - 0.15) / 2 }
         }
       }
       scale 1 / Lamp_Scale
@@ -969,20 +1565,48 @@
       ( "Lamp_Flexneck",
         (LAMP__DHOOD - LAMP_HBULB + max_extent (Bulb).y - lamp_rBulb) * z,
         lamp_c_Light * lamp_Brightness, lamp_Fade,
-        lamp_v_Soft * <lamp_dBulb, 1, 1, 1>, Use_photons, "ovoid white",
-        lamp_rBulb - max_extent (Bulb).y + LAMP_HBULB, lamp_x_Light
+        lamp_v_Soft.x * lamp_dBulb,
+        <lamp_v_Soft.y, lamp_v_Soft.y, lamp_v_Soft.z, lamp_v_Soft.t>, 0,
+        Use_photons, "ovoid white", lamp_rBulb - max_extent (Bulb).y + LAMP_HBULB, lamp_x_Light
       )
       #if (lamp_Refl > 0) // hood diffuse reflection
         Lamp_Source
         ( "Lamp_Flexneck", LAMP__DHOOD * z,
           lamp_c_Light * lamp_Refl, lamp_Fade,
-          lamp_v_Soft * <lamp_rInt * 2, 1, 1, 1>, Use_photons, "",
-          0, lamp_x_Light
+          lamp_v_Soft.x * lamp_rInt * 2,
+          <lamp_v_Soft.y, lamp_v_Soft.y, lamp_v_Soft.z, lamp_v_Soft.t>, 1,
+          Use_photons, "radiosity", 0, lamp_x_Light
         )
       #end
     #end // light source & optional verbosity
   }
 #end // Lamp_Flexneck
+
+//----------------------------------------------------------
+
+#macro Lamp_Flexneck_Rectangular
+( Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness,
+  Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer
+)
+  Lamp__flexneck_panel
+  ( "Lamp_Flexneck_Rectangular", no,
+    Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness,
+    Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer
+  )
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Flexneck_Round
+( Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness,
+  Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer
+)
+  Lamp__flexneck_panel
+  ( "Lamp_Flexneck_Round", yes,
+    Height, uv_Base_size, pv_Base, v_Up, v_Aim, Status, c_Light, Brightness,
+    Tightness, t_Fixture, c_Panel, uv_Panel_size, v4_Soft, Use_photons, Has_dimmer
+  )
+#end
 
 //----------------------------------------------------------
 
@@ -1012,49 +1636,31 @@
     #local lamp_Less = lamp_RoC - LAMP__RNECK;
     #local lamp_Sin = sin (lamp_Flex);
     #local lamp_Cos = cos (lamp_Flex);
-    #if (Flex > 0)
-      isosurface
-      { function
-        { max
-          ( Lamp_fn_Isocoil (x, atan2 (-y, -z) * lamp_RoC, sqrt (y*y + z*z) - lamp_RoC),
-            y * lamp_Cos + z * lamp_Sin
-          )
-        }
-        contained_by
-        { box
-          { <-LAMP__RNECK, 0, -lamp_More>,
-            #if (Flex < 90)
-              <LAMP__RNECK, lamp_More * lamp_Sin, -lamp_Less * lamp_Cos>
-            #else
-              <LAMP__RNECK, lamp_More, -lamp_More * lamp_Cos>
-            #end
-          }
-        }
-        max_gradient 1.1
-        translate lamp_RoC * z
+    #local lamp_Sgn = select (Flex, -1, 1);
+    isosurface
+    { function
+      { max
+        ( Lamp_fn_Isocoil
+          ( x,
+            lamp_RoC * #if (Flex > 0) atan2 (-y, -z) #else atan2 (y, z) #end,
+            sqrt (y*y + z*z) - lamp_RoC
+          ),
+          y * lamp_Cos + z * lamp_Sin
+        )
       }
-    #else
-      isosurface
-      { function
-        { max
-          ( Lamp_fn_Isocoil (x, atan2 (y, z) * lamp_RoC, sqrt (y*y + z*z) - lamp_RoC),
-            y * lamp_Cos + z * lamp_Sin
-          )
+      contained_by
+      { box
+        { <-LAMP__RNECK, 0, -lamp_Sgn * lamp_More>,
+          #if (abs (Flex) < 90)
+            <LAMP__RNECK, lamp_Sgn * lamp_More * lamp_Sin, -lamp_Sgn * lamp_Less * lamp_Cos>
+          #else
+            <LAMP__RNECK, lamp_More, -lamp_Sgn * lamp_More * lamp_Cos>
+          #end
         }
-        contained_by
-        { box
-          { <-LAMP__RNECK, 0, lamp_More>,
-            #if (Flex > -90)
-              <LAMP__RNECK, -lamp_More * lamp_Sin, lamp_Less * lamp_Cos>
-            #else
-              <LAMP__RNECK, lamp_More, lamp_More * lamp_Cos>
-            #end
-          }
-        }
-        max_gradient 1.1
-        translate -lamp_RoC * z
       }
-    #end
+      max_gradient 1.1
+      translate lamp_Sgn * lamp_RoC * z
+    }
   #end
 #end
 
@@ -1064,38 +1670,9 @@
 ( s_Caller, c_Light, c_Bulb, rBulb, Brightness,
   c_Light_out, Light_brightness_out, Fade_distance_out, c_Surface_out
 )
-  #local lamp_L = color c_Light;
-  #local lamp_B = color c_Bulb;
  // Light color:
-  #if (Brightness = 0)
-    #declare lamp_C = rgb 0;
-  #else
-    #if (Brightness > 0) // calculate lumens after filtering
-      #local lamp_Gray = Lamp_Luminance (lamp_L * lamp_B);
-      #if (lamp_Gray = 0)
-        Lamp__light_error
-        ( s_Caller, lamp_L, lamp_B, Brightness,
-          concat
-          ( "the light's filtered color (", Lamp__cstr (lamp_L * lamp_B, 4),
-            ") has luminance 0. Lumens cannot be achieved."
-          )
-        )
-      #end
-    #else // calculate lumens before filtering
-      #local lamp_Gray = Lamp_Luminance (lamp_L);
-      #if (lamp_Gray = 0)
-        Lamp__light_error
-        ( s_Caller, c_Light, c_Bulb, Brightness,
-          concat
-          ( "the light's color (", Lamp__cstr (lamp_L, 4),
-            ") has luminance 0. Lumens cannot be achieved."
-          )
-        )
-      #end
-    #end
-    #local lamp_C = abs (Brightness) * Lamp_Lumen * lamp_L / lamp_Gray;
-  #end
-  #declare c_Light_out = lamp_C * lamp_B;
+  #local lamp_C = Lamp__get_light_color (s_Caller, c_Light, c_Bulb, Brightness, no);
+  #declare c_Light_out = lamp_C * c_Bulb;
  // Dimensions:
   #if (Lamp__has_invsq()) // use true 1/sq. fade
     #if (lamp__Dbg_fade) #debug "Lamp_Lighting // true inverse square\n" #end
@@ -1104,22 +1681,75 @@
     #local lamp_Surface = pow (LAMP__DLUMENEQLUX / rBulb, 2);
   #else // use old POV-Ray attenuation
     #if (lamp__Dbg_fade) #debug "Lamp_Lighting // attenuation approximation\n" #end
-    #local Fade_distance_out = Lamp_Fade; // arbitrarily tiny
+    #declare Fade_distance_out = Lamp_Fade; // arbitrarily tiny
     // Inverse of POV's attenuation formula:
     #declare Light_brightness_out = (1 + pow (LAMP__DLUMENEQLUX / Fade_distance_out, 2)) / 2;
     // POV's attenuation formula:
     #local lamp_Surface = Light_brightness_out * 2 / (1 + pow (rBulb / Fade_distance_out, 2));
   #end
   #declare c_Surface_out = lamp_C * lamp_Surface;
+ // Debugging:
   #if (lamp__Dbg_fade)
-    #debug concat ("( \"", s_Caller, "\", ", Lamp__cstr (lamp_L, 4), ",\n")
+    #debug concat ("( \"", s_Caller, "\", ", Lamp__cstr (c_Light, 4), ",\n")
     #debug concat
-    ( "  ", Lamp__cstr (lamp_B, 4), ", ", Lamp__str (rBulb, 3), ", ", Lamp__str (Brightness, 4), ",\n"
+    ( "  ", Lamp__cstr (c_Bulb, 4), ", ", Lamp__str (rBulb, 3), ", ", Lamp__str (Brightness, 4), ",\n"
     )
     #debug concat
     ( "  ", Lamp__cstr (c_Light_out, 4), ", ", Lamp__str (Light_brightness_out, 4), ", ",
       Lamp__str (Fade_distance_out, 4), ", ", Lamp__cstr (c_Surface_out, 4), "\n)\n"
     )
+  #end
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Lighting_Flat
+( s_Caller, c_Light, c_Panel, uv_Size, isRound, Tightness, Brightness,
+  c_Light_out, Light_brightness_out, Fade_distance_out, c_Surface_out
+)
+  #if (Tightness < 0)
+    #error concat
+    ( s_Caller, "(): Tightness was set to ", Lamp__str (Tightness, 3),
+      "; it must be non-negative."
+    )
+  #end
+  #local lamp_uv_Size = <0,0> + uv_Size;
+ // Light color:
+  #local lamp_C = Lamp__get_light_color (s_Caller, c_Light, c_Panel, Brightness, yes);
+  #declare c_Light_out = lamp_C * c_Panel;
+ // Dimensions:
+  #if (Lamp__has_invsq()) // use true 1/sq. fade
+    #if (lamp__Dbg_fade) #debug "Lamp_Lighting_Flat // true inverse square\n" #end
+    #declare Fade_distance_out = 0;
+    // Inverse of the attenuation (which is straight squared), doubled
+    // because we light only a hemisphere, then adjusted for tightness:
+    #declare Light_brightness_out = 2 * pow (LAMP__DLUMENEQLUX / Lamp_Scale, 2) * (Tightness + 1);
+  #else // use old POV-Ray attenuation
+    #if (lamp__Dbg_fade) #debug "Lamp_Lighting_Flat // attenuation approximation\n" #end
+    #declare Fade_distance_out = Lamp_Fade; // arbitrarily tiny
+    // Inverse of POV's old attenuation formula, doubled because
+    // we light only a hemisphere, then adjusted for tightness:
+    #declare Light_brightness_out = (1 + pow (LAMP__DLUMENEQLUX / Fade_distance_out, 2)) * (Tightness + 1);
+  #end
+  #local lamp_Ahemisphere = 2 * pi * pow (LAMP__DLUMENEQLUX, 2); // should be 5000 by definition
+  #declare c_Surface_out = lamp_C * lamp_Ahemisphere * (Tightness + 1)
+  / ( isRound?
+      lamp_uv_Size.x * lamp_uv_Size.y * pi / 4:
+      lamp_uv_Size.x * lamp_uv_Size.y
+    );
+ // Debugging:
+  #if (lamp__Dbg_fade)
+    #debug concat ("( \"", s_Caller, "\", ", Lamp__cstr (c_Light, 4), ",\n")
+    #debug concat
+    ( "  ", Lamp__cstr (c_Panel, 4), ", ", Lamp__uvstr (lamp_uv_Size, 3),
+      #if (isRound) ", true, ", #else ", false, ", #end
+      Lamp__str (Tightness, 3), ", ", Lamp__str (Brightness, 4), ",\n"
+    )
+    #debug concat
+    ( "  ", Lamp__cstr (c_Light_out, 4), ", ", Lamp__str (Light_brightness_out, 4), ", ",
+      Lamp__str (Fade_distance_out, 4), ", ", Lamp__cstr (c_Surface_out, 4), "\n)\n"
+    )
+    #debug concat ("lamp_Ahemisphere = ", str (lamp_Ahemisphere, 0, 3), "\n")
   #end
 #end
 
@@ -1200,97 +1830,361 @@
 
 //----------------------------------------------------------
 
-#macro Lamp_Source (s_Caller, pv_Location, c_Light, Fade, v4_Soft, Photons, s_Hood, zHood, Xform)
-  #local lamp_Spotlight = (strlen (s_Hood) = 0);
-  #local lamp_v_Soft = <0,0,0,0> + v4_Soft;
+#macro Lamp_Panel_Material (c_Light, c_Panel, Gloss, IoR, Tightness)
+  #if (lamp__Dbg_fade)
+    #debug concat
+    ( "Lamp_Panel_Material (", Lamp__cstr (c_Light, 4), ", ", Lamp__cstr (c_Panel, 4),
+      ", ", str (Gloss, 0, 2), ", ", str (IoR, 0, 3), ", ", str (Tightness, 0, 1), ")\n"
+    )
+  #end
+  #if (Tightness < 0)
+    #error concat
+    ( "Lamp_Panel_Material(): Tightness was set to ", Lamp__str (Tightness, 3),
+      "; it must be non-negative."
+    )
+  #end
+  #local lamp_L = color c_Light filter 0 transmit 0;
+  #local LAMP_DIFFUSE = 0.75; // affects pigment, but not glow intensity
+  #local lamp_Ambient = LAMP_DIFFUSE * Lamp_c_Ambient / Lamp_Diffuse;
+  #local lamp_T = texture { pigment { color c_Panel filter 0 transmit 0 } }
+  #local lamp_F = finish
+  { diffuse LAMP_DIFFUSE
+    ambient lamp_Ambient
+    #if (version >= 3.7) emission 0 #end
+  }
+  #if (VZero (lamp_L)) // Lamp is off
+    material
+    { texture
+      { lamp_T
+        finish
+        { lamp_F
+          #if (Lamp__has_Fresnel() & Gloss > 0)
+            fresnel 1
+            reflection { 0 1 } conserve_energy
+            #if (!Lamp_Reflect) specular albedo 1 roughness 0.001 #end
+          #end
+        }
+      }
+      // Add a gloss layer if no finish-level Fresnel
+      #if (!Lamp__has_Fresnel() & Gloss > 0)
+        texture
+        { pigment { rgbf 1 }
+          finish
+          { reflection { 0 1 fresnel } conserve_energy
+            #if (!Lamp_Reflect)
+              #local lamp_Rough = 0.001;
+              specular Lamp__fn_Albedo (lamp_Rough) * Lamp__fn_Hilite (IoR)
+              roughness lamp_Rough
+            #end
+          }
+        }
+      #end
+      interior { ior IoR }
+    }
+  #else // Lamp is on; no gloss here because the parser fights me
+    material
+    { #if (version < 3.7)
+        #local lamp_Emission = lamp_L * pow (cos (pi / 4), Tightness - 1);
+        texture
+        { lamp_T
+          finish
+          { lamp_F
+            ambient lamp_Ambient + lamp_Emission
+          }
+        }
+        #if (lamp__Dbg_fade)
+          #debug concat ("  finish\n  { diffuse ", str (LAMP_DIFFUSE, 0, 3), "\n")
+          #debug concat ("    ambient ", Lamp__cstr (lamp_Ambient + lamp_Emission, 4), "\n  }\n")
+        #end
+      #else
+        #if (lamp__Dbg_fade)
+          #debug concat ("  finish\n  { diffuse ", str (LAMP_DIFFUSE, 0, 3), "\n")
+          #debug concat ("    ambient ", Lamp__cstr (lamp_Ambient, 4), "\n  }\n")
+          #debug "  aoi\n"
+        #end
+        texture
+        { aoi texture_map
+          { // Implementation note: although this section is intended only for 3.7+, we cannot
+            // use a #for loop because the 3.5/3.6 pre-processor would report a mismatched #end.
+            #local lamp_Ax = 20; // integer counter
+            #while (lamp_Ax <= 40)
+              #local lamp_Aoi = lamp_Ax / 40; // AOI map argument
+              #local lamp_Emission = lamp_L * pow (cos ((1 - lamp_Aoi) * pi), Tightness - 1);
+              [ lamp_Aoi
+                lamp_T
+                finish { lamp_F emission lamp_Emission }
+              ]
+              #if (lamp__Dbg_fade)
+                #debug concat
+                ( "  [", str (lamp_Aoi, 0, 3), " finish { emission ",
+                  Lamp__cstr (lamp_Emission, 4), " }]\n"
+                )
+              #end
+              #local lamp_Ax = lamp_Ax + 1;
+            #end
+          }
+        }
+      #end
+    }
+  #end
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Rotation_Trans (s_Caller, pv_Base, v_Up, v_Aim)
+  #local lamp_Wrn_up = no;
+  #local lamp_Wrn_aim = no;
+  #local lamp_x_Position = Lamp_Orient_Trans (pv_Base, v_Up, v_Aim, lamp_Wrn_up, lamp_Wrn_aim)
+  #if (lamp_Wrn_up)
+    #warning concat
+    ( s_Caller, "(): the null vector was used for v_Up. The y vector is substituted."
+    )
+  #end
+  #if (lamp_Wrn_aim)
+    #warning concat
+    ( "pv_Base = ", Lamp__vstr (pv_Base + <0,0,0>, 4),
+      ", v_Up = ", Lamp__vstr (v_Up + <0,0,0>, 4),
+      ", v_Aim = ", Lamp__vstr (v_Aim + <0,0,0>, 4)
+    )
+    #warning concat
+    ( s_Caller,
+      "(): v_Aim is directly above or below the lamp; the lamp's direction is indeterminate."
+    )
+  #end
+  lamp_x_Position
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Smooth_Neck (Length, Radius, Flex, t_Texture)
+  Lamp_Check ("Lamp_Smooth_Neck", Flex, "Flex", -180, 180)
+  #if (Flex = 0)
+    cylinder
+    { 0, Length * y, Radius
+      texture { t_Texture }
+    }
+  #else
+    #local lamp_Flex = radians (Flex);
+    #local lamp_RoC = abs (Length / lamp_Flex);
+    #local lamp_More = lamp_RoC + Radius;
+    #local lamp_Less = lamp_RoC - Radius;
+    #local lamp_Sin = sin (lamp_Flex);
+    #local lamp_Cos = cos (lamp_Flex);
+    #local lamp_Sgn = select (Flex, -1, 1);
+    intersection
+    { torus { lamp_RoC, Radius }
+      #if (mod (Flex, 90) != 0) plane { x, 0 rotate -Flex * y } #end
+      box
+      { <0, -Radius, -lamp_Sgn * lamp_More>,
+        #if (abs (Flex) < 90)
+          <lamp_Sgn * lamp_More * lamp_Sin, Radius, -lamp_Sgn * lamp_Less * lamp_Cos>
+        #else
+          <lamp_More, Radius, -lamp_Sgn * lamp_More * lamp_Cos>
+        #end
+      }
+      texture
+      { function { 1 } texture_map { [1 t_Texture] }
+        rotate -90 * z
+        translate -lamp_Sgn * lamp_RoC * z
+        scale <0.5 / (pi * lamp_RoC), 1, -lamp_Sgn>
+        warp { cylindrical }
+        rotate 90 * y
+        scale <1, 1, lamp_Sgn>
+      }
+      rotate 90 * z
+      translate lamp_Sgn * lamp_RoC * z
+    }
+  #end
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Source
+( s_Caller, pv_Location, c_Light, Fade, uv_Size, v4_Soft, Tightness, Photons,
+  s_Type, zHood, Xform
+)
+ //----- prep -----
+  #local lamp_s_Intro = concat (s_Caller, "(): Lamp_Source(): ")
+  #local lamp_Type = strlwr (s_Type);
   #local lamp_pv_Final = vtransform (<0,0,0> + pv_Location, Xform);
   #local lamp_v_Aim = vtransform (z * 100 + pv_Location, Xform);
-  #if (lamp_v_Soft.x != 0)
-    #local lamp_Xlate = vtransform (<0,0,0>, Xform);
-    #local lamp_dAreaCm = Lamp_fn_Area_Adjust (lamp_v_Soft.x, lamp_v_Soft.y);
-    #local lamp_dArea = lamp_dAreaCm / Lamp_Scale;
-    #local lamp_v_xArea = vtransform (lamp_dAreaCm * x, Xform) - lamp_Xlate;
-    #local lamp_v_yArea = vtransform (lamp_dAreaCm * y, Xform) - lamp_Xlate;
+  #local lamp_uv_Size = <0,0> + uv_Size;
+  #local lamp_isArea = (lamp_uv_Size.x != 0 & lamp_uv_Size.y != 0);
+  #local lamp_Warn_area = yes;
+  #local lamp_Tightness = Tightness;
+  #local lamp_s_Comment = "main light source"
+  #switch (0)
+    #case (strcmp (lamp_Type, "flat rectangular"))
+      #local lamp_isSpotlight = yes;
+      #local lamp_Circular = no;
+      #local lamp_Orient = no;
+      #break
+    #case (strcmp (lamp_Type, "flat round"))
+      #local lamp_isSpotlight = yes;
+      #local lamp_Circular = yes;
+      #local lamp_Orient = no;
+      #break
+    #case (strcmp (lamp_Type, "ovoid white"))
+      #local lamp_isSpotlight = no;
+      #local lamp_Circular = yes;
+      #local lamp_Orient = yes;
+      #break
+    #case (strcmp (lamp_Type, ""))
+    #case (strcmp (lamp_Type, "radiosity"))
+      #local lamp_isSpotlight = yes;
+      #local lamp_Circular = yes;
+      #local lamp_Orient = no;
+      #local lamp_Tightness = 1;
+      #local lamp_Warn_area = no; // Avoid double warning
+      #local lamp_s_Comment =
+        #if (Lamp_Radiosity)
+          concat ("radiosity makeup for max_sample ", Lamp__str (Lamp_Max_Sample, 4))
+        #else
+          "radiosity replacement"
+        #end
+      #break
+    #case (strcmp (lamp_Type, "spherical")) // for future use
+      #local lamp_isSpotlight = no;
+      #local lamp_Circular = yes;
+      #local lamp_Orient = yes;
+      #break
+    #else
+      #if (strlen (s_Type) = 5 & !strcmp (substr (s_Type, 1, 4), "test"))
+        // Enable stress test debugging; last character is converted to binary:
+        #local lamp_Perm = val (substr (s_Type, 5, 1));
+        #local lamp_isSpotlight = mod (lamp_Perm, 2);
+        #local lamp_Circular = mod (floor (lamp_Perm / 2), 2);
+        #local lamp_Orient = mod (floor (lamp_Perm / 4), 2);
+      #else
+        #local lamp_isSpotlight = no;
+        #local lamp_Circular = no;
+        #local lamp_Orient = no;
+      #end
+      #warning concat (lamp_s_Intro, "unknown s_Type \"", s_Type, "\"")
   #end
+  #if (lamp_isSpotlight)
+    #if (lamp_Tightness < 0)
+      #error concat
+      ( lamp_s_Intro, "Tightness was set to ", Lamp__str (lamp_Tightness, 3),
+        "; it must be non-negative."
+      )
+    #end
+  #end
+  #if (lamp_isArea)
+    #local lamp_v_Soft = <0,0,0,0> + v4_Soft;
+    #if (lamp_Warn_area)
+      #if (lamp_Circular)
+        #if (lamp_v_Soft.x < 2 | lamp_v_Soft.y < 2)
+          #warning concat (lamp_s_Intro, "Area light resolution is ", vstr (2, lamp_v_Soft, ", ", 0, 3))
+          #warning "Area light resolution must be at least 2, 2 for a circular area light; changed accordingly."
+        #end
+      #else
+        #if (lamp_v_Soft.x < 1 | lamp_v_Soft.y < 1)
+          #warning concat
+          ( lamp_s_Intro, "Area light resolution is ", vstr (2, lamp_v_Soft, ", ", 0, 3),
+            "; it must be at least 1, 1; changed accordingly."
+          )
+        #end
+      #end
+      #if (version < 3.7 & lamp_v_Soft.t)
+        #warning concat
+        ( s_Caller, "(): area_illumination is not available in POV-Ray ", str (version, 0, 2), "."
+        )
+      #end
+    #end
+    #local lamp_v_Soft =
+    < max (floor (lamp_v_Soft.x), 1 + lamp_Circular),
+      max (floor (lamp_v_Soft.y), 1 + lamp_Circular),
+      lamp_v_Soft.z,
+      lamp_v_Soft.t
+    >;
+    #local lamp_Xlate = vtransform (<0,0,0>, Xform);
+    #local lamp_uv_AreaCm =
+    < Lamp_fn_Area_Adjust (lamp_uv_Size.x, lamp_v_Soft.x),
+      Lamp_fn_Area_Adjust (lamp_uv_Size.y, lamp_v_Soft.y)
+    >;
+    #local lamp_uv_Area = lamp_uv_AreaCm / Lamp_Scale;
+    #local lamp_v_xArea = vtransform (lamp_uv_AreaCm.x * x, Xform) - lamp_Xlate;
+    #local lamp_v_yArea = vtransform (lamp_uv_AreaCm.y * y, Xform) - lamp_Xlate;
+  #else
+    #if (lamp_uv_Size.x != 0 | lamp_uv_Size.y != 0)
+      #warning concat
+      ( lamp_s_Intro, "light size is ", Lamp__uvstr (lamp_uv_Size, 4), " cm; area light is not used."
+      )
+    #end
+  #end
+ //----- light source -----
   light_source
   { lamp_pv_Final, color c_Light
     fade_distance Fade / Lamp_Scale
     fade_power 2
-    #if (lamp_Spotlight)
+    #if (lamp_isSpotlight)
       spotlight point_at lamp_v_Aim
-      radius -90 falloff 90 tightness 1 // cosine falloff
+      radius -90 falloff 90 tightness Tightness
     #end
-    #if (lamp_v_Soft.x != 0)
+    #if (lamp_isArea)
       area_light
-      #if (lamp_Spotlight)
-        lamp_v_xArea, lamp_v_yArea, lamp_v_Soft.y, lamp_v_Soft.y
+      #if (lamp_Orient)
+        lamp_uv_Area * x, lamp_uv_Area * y, lamp_v_Soft.x, lamp_v_Soft.y
       #else
-        lamp_dArea * x, lamp_dArea * y, lamp_v_Soft.y, lamp_v_Soft.y
+        lamp_v_xArea, lamp_v_yArea, lamp_v_Soft.x, lamp_v_Soft.y
+      #end
+      #if (lamp_Circular)
+        circular
+      #end
+      #if (lamp_Orient)
+        #if
+        ( !lamp_Circular | lamp_uv_AreaCm.x != lamp_uv_AreaCm.y |
+          lamp_v_Soft.x != lamp_v_Soft.y | lamp_v_Soft.x < 2
+        )
+          #warning concat
+          ( lamp_s_Intro, "area_light ", Lamp__vstr (lamp_v_xArea, 6), ", ",
+            Lamp__vstr (lamp_v_yArea, 6), ", ", vstr (2, lamp_v_Soft, ", ", 0, 3)
+          )
+          // POV-Ray should issue a parse warning after 'orient'.
+        #end
         orient
       #end
-      circular jitter adaptive lamp_v_Soft.z
-      #if (lamp_v_Soft.t)
-        #if (version >= 3.7)
+      jitter adaptive lamp_v_Soft.z
+      #if (lamp_v_Soft.t & version >= 3.7)
           area_illumination
-        // Spotlights are assumed to be paired with a main light,
-        // so to avoid a double warning, do not warn for spotlight.
-        #else #if (!lamp_Spotlight)
-          #warning concat
-          ( s_Caller, ":() area_illumination is not available in POV-Ray ",
-            str (version, 0, 2), "."
-          )
-        #end
-        #end
       #end
     #end
     #if (!Photons)
       photons { reflection off refraction off }
     #end
   }
- //----- Write transformed SDL to the debug stream -----
+ //----- Write SDL of transformed objects to the debug stream -----
   #if (Lamp_Debug)
-   //----- light source -----
-    #debug concat
-    ( "light_source // ",
-      #if (!lamp_Spotlight)
-        "main light source\n"
-      #else #if (Lamp_Radiosity)
-        "radiosity makeup for max_sample ", Lamp__str (Lamp_Max_Sample, 4), "\n"
-      #else
-        "radiosity replacement\n"
-      #end
-      #end
-    )
-    #debug concat
-    ( "{ ", Lamp__vstr (lamp_pv_Final, 6),
-      ", ", Lamp__cstr (color c_Light, 4), "\n"
-    )
-    #debug concat
-    ( "  fade_distance ", Lamp__str (Fade / Lamp_Scale, 4), "\n  fade_power 2\n"
-    )
-    #if (lamp_Spotlight) // spotlight
+   //----- the light source -----
+    #debug concat ("light_source // ", lamp_s_Comment, "\n")
+    #debug concat ("{ ", Lamp__vstr (lamp_pv_Final, 6), ", ", Lamp__cstr (color c_Light, 4), "\n")
+    #debug concat ("  fade_distance ", Lamp__str (Fade / Lamp_Scale, 4), "\n  fade_power 2\n")
+    #if (lamp_isSpotlight)
       #debug concat ("  spotlight point_at ", Lamp__vstr (lamp_v_Aim, 6), "\n")
-      #debug "  radius -90 falloff 90 tightness 1\n"
+      #debug concat ("  radius -90 falloff 90 tightness ", Lamp__str (Tightness, 3), "\n")
     #end
-    #if (lamp_v_Soft.x != 0)
+    #if (lamp_isArea)
       #debug "  area_light "
-      #if (lamp_Spotlight) // directed area light
+      #if (lamp_Orient)
+        #debug concat
+        ( Lamp__str (lamp_uv_Area.x, 4), " * x, ",
+          Lamp__str (lamp_uv_Area.y, 4), " * y, "
+        )
+      #else
         #debug concat
         ( Lamp__vstr (lamp_v_xArea, 6), ", ",
           Lamp__vstr (lamp_v_yArea, 6), ", "
         )
-      #else // isotropic area light
-        #debug concat
-        ( Lamp__str (lamp_dArea, 4), " * x, ",
-          Lamp__str (lamp_dArea, 4), " * y, "
-        )
       #end
-      #debug concat (str (lamp_v_Soft.y, 0, 0), ", ", str (lamp_v_Soft.y, 0, 0), "\n")
-      #debug concat
-      ( "  circular jitter adaptive ", str (floor (lamp_v_Soft.z), 0, 0),
-        #if (!lamp_Spotlight) " orient", #end
-        "\n"
-      )
+      #debug concat (str (lamp_v_Soft.x, 0, 0), ", ", str (lamp_v_Soft.y, 0, 0), "\n ")
+      #if (lamp_Circular)
+        #debug " circular"
+      #end
+      #if (lamp_Orient)
+        #debug " orient"
+      #end
+      #debug concat (" adaptive ", str (floor (lamp_v_Soft.z), 0, 0), " jitter\n")
       #if (lamp_v_Soft.t & version >= 3.7)
         #debug "  area_illumination\n"
       #end
@@ -1299,11 +2193,9 @@
       #debug "  photons { reflection off refraction off }\n"
     #end
     #debug "}\n"
-   //----- rudimentary hood -----
+   //----- a rudimentary hood -----
     #switch (0)
-      #case (strcmp (s_Hood, ""))
-        #break
-      #case (strcmp (s_Hood, "ovoid white"))
+      #case (strcmp (lamp_Type, "ovoid white"))
         #debug "sphere // rudimentary hood\n"
         #debug concat
         ( "{ 0, ", Lamp__str ((LAMP__R2HOOD - LAMP__THIN) / Lamp_Scale, 4),
@@ -1319,8 +2211,7 @@
         #debug concat ("  translate ", Lamp__vstr (lamp_pv_Final, 6), "\n")
         #debug concat ("  pigment { rgb ", str (LAMP__WHITE, 0, 2), " }\n")
         #debug concat
-        ( "  finish { ambient ", Lamp__cstr (color Lamp_c_Ambient / Lamp_Diffuse, 4),
-          " diffuse 1",
+        ( "  finish { ambient ", Lamp__cstr (color Lamp_c_Ambient / Lamp_Diffuse, 4), " diffuse 1",
           #if (version >= 3.7) " emission 0", #end
           " }\n"
         )
@@ -1329,8 +2220,6 @@
         #end
         #debug "}\n"
         #break
-      #else
-        #warning concat (s_Caller, "(): Lamp_Source(): unknown hood type \"", s_Hood, "\"")
     #end
   #end
 #end
@@ -1345,6 +2234,10 @@
   #local lamp_RCutout = LAMP_R * tan (radians ((180 - LAMP_ROTN) / 2));
   #local lamp_Switch_blob = LAMP_rEDGE / LAMP_R;
   #local lamp_Rim_blob = LAMP_rEDGE / (LAMP_R + LAMP_RRIM) * 2;
+  #local lamp_Finish = finish
+  { Lamp_Finish_Base (1, 1)
+    specular 0.215 roughness 0.03
+  }
   union
   { isosurface
     { function
@@ -1354,7 +2247,7 @@
              lamp_Switch_blob
            )
          + RE_fn_Blob2
-           ( f_sphere (0, y - lamp_RCutout, z - LAMP_R, lamp_RCutout),
+           ( f_sphere (0, y - lamp_RCutout, z + LAMP_R, lamp_RCutout),
              LAMP_rEDGE
            )
         ) - 1
@@ -1363,7 +2256,23 @@
       { box { -LAMP_R, <LAMP_R, LAMP_R * sin (radians (LAMP_ROTN)), LAMP_R> }
       }
       max_gradient 0.90 / lamp_Switch_blob
-      rotate -State * LAMP_ROTN * x
+      pigment
+      { object
+        { union
+          { cylinder { -y, y, 0.075 translate 0.175 * z }
+            cylinder { -y, y, 0.075 translate 0.825 * z }
+            box { <-0.075, -1, 0.2>, <0.075, 1, 0.8> }
+            difference
+            { cylinder { -y, y, 0.4 translate -0.5 * z }
+              cylinder { -y, y, 0.25 translate -0.5 * z }
+            }
+          }
+          rgb 0.015 rgb 0.8
+        }
+        rotate -LAMP_ROTN / 2 * x
+      }
+      finish { lamp_Finish }
+      rotate State * LAMP_ROTN * x
     }
     isosurface
     { function
@@ -1378,16 +2287,12 @@
            )
         ) - 1
       }
-      contained_by
-      { box { -<LAMP_RRIM, 1, LAMP_RRIM>, <LAMP_RRIM, 0, LAMP_RRIM> }
-      }
+      contained_by { box { -<LAMP_RRIM, 1, LAMP_RRIM>, <LAMP_RRIM, 0, LAMP_RRIM> } }
       max_gradient 0.79 / lamp_Rim_blob
+      pigment { rgb 0.015 }
+      finish { lamp_Finish }
     }
-    pigment { rgb 0.015 }
-    finish
-    { Lamp_Finish_Base (1, 1)
-      specular 0.215 roughness 0.03
-    }
+    translate 0.16 * y
   }
 #end
 
@@ -1396,7 +2301,7 @@
 #macro Lamp_Warnings()
  // In this version of DeskLamp, all global warnings involve pre-3.7 radiosity
   #if (version < 3.7 & Lamp_Radiosity)
-    #if (!VZero (Lamp_c_Ambient) & !lamp__Warned_ambient)
+    #if (!VZero (color Lamp_c_Ambient) & !lamp__Warned_ambient)
       #warning concat
       ( "For best results with radiosity in POV-Ray ", str (version, 0, 2),
         ", Lamp_c_Ambient and the #default ambient should both be set to zero."

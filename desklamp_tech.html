@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 1.0 Technical Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 2.0 Technical Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 1.0 Technical Manual</h1>
+<h1>DeskLamp 2.0 Technical Manual</h1>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
@@ -24,17 +24,24 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
    <ul>
     <li><a href="#Construction">Lamp construction tools</a>
      <ul>
+      <li><a href="#Lamp_Area_Res">Lamp_Area_Res</a>
       <li><a href="#Lamp_Bulb_Material">Lamp_Bulb_Material</a>
       <li><a href="#Lamp_Check">Lamp_Check</a>
+      <li><a href="#Lamp_Check_Flex">Lamp_Check_Flex</a>
       <li><a href="#Lamp_Coil_Normal">Lamp_Coil_Normal</a>
+      <li><a href="#Lamp_Dimmer">Lamp_Dimmer</a>
       <li><a href="#Lamp_Finish_Base">Lamp_Finish_Base</a>
       <li><a href="#Lamp_Flex_Angle">Lamp_Flex_Angle</a>
       <li><a href="#Lamp_Has4D">Lamp_Has4D</a>
       <li><a href="#Lamp_Isocoil">Lamp_Isocoil</a>
       <li><a href="#Lamp_Lighting">Lamp_Lighting</a>
+      <li><a href="#Lamp_Lighting_Flat">Lamp_Lighting_Flat</a>
       <li><a href="#Lamp_Lit_Finish">Lamp_Lit_Finish</a>
       <li><a href="#Lamp_Luminance">Lamp_Luminance</a>
       <li><a href="#Lamp_Orient_Trans">Lamp_Orient_Trans</a>
+      <li><a href="#Lamp_Panel_Material">Lamp_Panel_Material</a>
+      <li><a href="#Lamp_Rotation_Trans">Lamp_Rotation_Trans</a>
+      <li><a href="#Lamp_Smooth_Neck">Lamp_Smooth_Neck</a>
       <li><a href="#Lamp_Source">Lamp_Source</a>
       <li><a href="#Lamp_Switch">Lamp_Switch</a>
       <li><a href="#Lamp_Warnings">Lamp_Warnings</a>
@@ -59,13 +66,34 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <h2 id="Construction">Lamp Construction Tools</h2>
 
+<h3 id="Lamp_Area_Res">Macro Lamp_Area_Res (uv_Area, Greater_res)</h3>
+
+<p>Computes sampling resolutions for an area light. The number of sampling points in the greater dimension is given, and the number of points in the shorter dimension, no less than one, is computed. The results are returned in a 2-D vector. No range checks are made.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>uv_Area</code></td>
+  <td>2-D vector</td>
+  <td>The size of the area light.</td>
+ </tr><tr>
+  <td><code>Greater_res</code></td>
+  <td>float</td>
+  <td>The number of sampling points in the larger dimension.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
 <h3 id="Lamp_Bulb_Material">Macro Lamp_Bulb_Material (c_Light, c_Bulb, Glossy)</h3>
 
 <p>Returns a material suitable for a glowing light bulb.
 
 <p><strong>Warning:</strong> If the POV-Ray version or <code>#version</code> is less than 3.7, then <code>global_settings { ambient_light }</code> must remain at its default setting for this macro to work properly.
 
-<h4>Argument</h4>
+<h4>Arguments</h4>
 <table>
  <tr>
   <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
@@ -86,7 +114,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p><a href="#toc">Table of contents</a><hr>
 
-<h3 id="Lamp_Check">Lamp_Check (s_Caller, Value, s_Name, Min, Max)</h3>
+<h3 id="Lamp_Check">Macro Lamp_Check (s_Caller, Value, s_Name, Min, Max)</h3>
 
 <p>A general argument range check. If the argument is out-of-range, the render is halted with a parse error and an informative message.
 
@@ -119,6 +147,44 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p><a href="#toc">Table of contents</a><hr>
 
+<h3 id="Lamp_Check_Flex">Macro Lamp_Check_Flex (s_Caller, Flex, Height, pv_Base, v_Up, v_Aim)</h3>
+
+<p>Checks the result of a flex computation, as returned by macro <code>Lamp_Flex_Angle()</code>. If the flex angle is out-of-range, the render is halted with a parse error and an informative message.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>s_Caller</code></td>
+  <td>string</td>
+  <td>The name of the macro that is requesting the range check.</td>
+ </tr><tr>
+  <td><code>Flex</code></td>
+  <td>float</td>
+  <td>The flex angle, in radians.</td>
+ </tr><tr>
+  <td><code>Height</code></td>
+  <td>float</td>
+  <td>The <code>Height</code> argument of the calling lamp macro.</td>
+ </tr><tr>
+  <td><code>pv_Base</code></td>
+  <td>point vector</td>
+  <td>The <code>pv_Base</code> argument of the calling lamp macro.</td>
+ </tr><tr>
+  <td><code>v_Up</code></td>
+  <td>vector</td>
+  <td>The <code>v_Up</code> argument of the calling lamp macro.</td>
+ </tr><tr>
+  <td><code>v_Aim</code></td>
+  <td>vector</td>
+  <td>The <code>v_Aim</code> argument of the calling lamp macro.</td>
+ </tr>
+</table>
+
+<p>Error messages issued by <code>Lamp_Check_Flex()</code> will cite the formal parameters <code>Height</code>, <code>pv_Base</code>, <code>v_Up</code>, and <code>v_Aim</code> by name; therefore, it will be helpful to the end user that any lamp macro that calls <code>Lamp_Check_Flex()</code> use the same names for its own corresponding formal parameters.
+
+<p><a href="#toc">Table of contents</a><hr>
 
 <h3 id="Lamp_Coil_Normal">Macro Lamp_Coil_Normal (Length, Flex, t_Texture)</h3>
 
@@ -145,6 +211,12 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p><a href="#toc">Table of contents</a><hr>
 
+<h3 id="Lamp_Dimmer">Macro Lamp_Dimmer()</h3>
+
+<p>A knurled rotary dial light switch with a surrounding rim and a plastic-looking black texture. It is oriented horizontally and points in the +<var>z</var> direction.
+
+<p><a href="#toc">Table of contents</a><hr>
+
 <h3 id="Lamp_Finish_Base">Macro Lamp_Finish_Base (Diffuse, Occlusion)</h3>
 
 <p>Creates ambient and diffuse statements consistent with the <code>Lamp_c_Ambient</code> and <code>Lamp_Diffuse</code> global parameters. This macro should be called from within a <code>finish</code> block, and is not intended for glowing objects.
@@ -168,7 +240,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <h3 id="Lamp_Flex_Angle">Macro Lamp_Flex_Angle (lFlex, lRigid, uv_Aim)</h3>
 
-<p>Returns the flex angle in radians required to aim a flexible neck at a given 2-D point. The aim direction is to the right of and perpendicular to the top of the neck. If no such angle is possible, then a number greater than <var>&pi;</var> is returned.
+<p>Returns the flex angle in radians required to aim a flexible neck at a given 2-D point, with a positive returned angle indicating an upward flex, and a negative returned angle indicating a downward flex. The neck is assumed to be composed of a flexible lower section and a rigid upper section. The origin is at the bottom of the neck, and the aim direction is to the right of and perpendicular to the top of the neck. If no such angle is possible, then a number greater than <var>&pi;</var> is returned.
 
 <h4>Arguments</h4>
 <table>
@@ -203,7 +275,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
   <br><b>A</b> = (<var>c</var> (cos(<var>&phi;</var>) &minus; 1) /  <var>&phi;</var> &minus; <var>a</var> sin(<var>&phi;</var>), <var>c</var> sin(<var>&phi;</var>) / <var>&phi;</var> + <var>a</var> cos(<var>&phi;</var>))
  <dt>Expanding the first equation, then simplifying:
  <dd><var>a</var> &minus; <b>P</b><sub><var>y</var></sub> cos(<var>&phi;</var>) + (<b>P</b><sub><var>x</var></sub> + <var>c</var>/<var>&phi;</var>) sin(<var>&phi;</var>) for <var>&phi;</var> &ne; 0
-  <br><var>a</var> &minus; <b>P</b><sub><var>y</var></sub> + <var>c</var> for <var>&phi;</var> = 0
+  <br><var>a</var> &minus; <b>P</b><sub><var>y</var></sub> + <var>c</var> for <var>&phi;</var> = 0 (limit as <var>&phi;</var> &rarr; 0)
 </dl>
 
 <p><a href="#toc">Table of contents</a><hr>
@@ -310,8 +382,83 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p>Error messages issued by <code>Lamp_Lighting()</code> will cite the formal parameters <code>c_Light</code>, <code>c_Bulb</code>, and <code>Brightness</code> by name; therefore, it will be helpful to the end user that any lamp macro that calls <code>Lamp_Lighting()</code> use the same names for its own corresponding formal parameters.
 
-<p>The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases" target="_blank">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
+<p id="filter">The following illustration shows the filtering effects of the <code>Brightness</code> and <code>c_Bulb</code> arguments. It was rendered with <a href="https://github.com/UberPOV/UberPOV/releases" target="_blank">UberPOV</a> glare desaturation (<code>+GLD</code>) to give a proper luminance impression. Each spot is the illumination from a spotlight 1 meter from the surface. The bottom row shows that a negative <code>Brightness</code> causes the color of the bulb to reduce the lumens output. (The bulbs themselves are not rendered.) A light color such as yellow reduces the luminance only slightly, but a dark color such as blue reduces the luminance considerably. Although the second row from the top also has a negative <code>Brightness</code>, the luminance is not reduced, because the bulb is white.
 <p><img src="desklamp_lighting.jpg" alt="[Bulb filter illustration]">
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Lighting_Flat">Macro Lamp_Lighting_Flat (s_Caller, c_Light, c_Panel, uv_Size, isRound, Tightness, Brightness, c_Light_out, Light_brightness_out, Fade_distance_out, c_Surface_out)</h3>
+
+<p>Calculates some lighting values for a flat panel light. The calculations assume a <code>fade_power</code> of 2.
+
+<h4>Arguments</h4>
+<p>Scalars used for color arguments will be automatically promoted to colors.
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th> <th>In/Out</th>
+ </tr><tr>
+  <td><code>s_Caller</code></td>
+  <td>string</td>
+  <td>The name of the calling macro. This name will be written with any error messages.</td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>c_Light</code></td>
+  <td>color</td>
+  <td>The color of the unfiltered light. Any filter or transmit components are ignored.</td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>c_Panel</code></td>
+  <td>color</td>
+  <td>The color of the emitting panel, which acts as a filter on the light’s color. Any filter or transmit components are ignored.</td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>uv_Size</code></td>
+  <td>2-D vector</td>
+  <td>The width and height of the emitting panel, in centimeters.</td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>isRound</code></td>
+  <td>float/Boolean</td>
+  <td>Whether the emitting panel is rectangular (<code>false</code>) or elliptical (<code>true</code>).</td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>Tightness</code></td>
+  <td>float</td>
+  <td>How rapidly the light intensity falls off as one moves to the side of the panel. Realistic values are 1.0 and greater. A value of 1.0 yields cosine falloff, corresponding to a panel surface brightness that is independent of incident angle. Higher values yield more directional spotlights. Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles. Negative values will result in a parse error.
+  </td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>Brightness</code></td>
+  <td>float</td>
+  <td>The light’s brightness in lumens. If negative, then the absolute value will be used, but reduced according to the luminance of the bulb color. If positive, then the bulb color will not affect the lumens. For example, if <code>Brightness</code> is 1100, then a red bulb will yield 1100 lumens; but if <code>Brightness</code> is &minus;1100, then a red bulb will yield only 234 lumens, because red is darker than white. See the <a href="#filter">illustration at <code>Lamp_Lighting()</code></a> for more examples.
+  </td>
+  <td>input</td>
+ </tr><tr>
+  <td><code>c_Light_out</code></td>
+  <td>color</td>
+  <td>The calculated lighting color, adjusted for lumens, but without attenuation adjustments. To obtain the <code>light_source</code> color, multiply this by <code>Light_brightness_out</code>.</td>
+  <td>output</td>
+ </tr><tr>
+  <td><code>Light_brightness_out</code></td>
+  <td>float</td>
+  <td>The calculated <code>light_source</code> brightness, relative to <code>c_Light_out</code>. To obtain the <code>light_source</code> color, multiply this by <code>c_Light_out</code>.</td>
+  <td>output</td>
+ </tr><tr>
+  <td><code>Fade_distance_out</code></td>
+  <td>float</td>
+  <td>The calculated <code>fade_distance</code> for the <code>light_source</code>, in centimeters.</td>
+  <td>output</td>
+ </tr><tr>
+  <td><code>c_Surface_out</code></td>
+  <td>color</td>
+  <td>The calculated bulb surface glow. This may be used as the <code>c_Light</code> argument to <a href="#Lamp_Bulb_Material"><code>macro Lamp_Bulb_Material()</code></a>.</td>
+  <td>output</td>
+ </tr>
+</table>
+
+<p>In order to receive the results of the calculations, the last 4 arguments must be identifiers that have already been declared.
+
+<p>Error messages issued by <code>Lamp_Lighting_Flat()</code> will cite the formal parameters <code>c_Light</code>, <code>c_Panel</code>, <code>Tightness</code>, and <code>Brightness</code> by name; therefore, it will be helpful to the end user that any lamp macro that calls <code>Lamp_Lighting_Flat()</code> use the same names for its own corresponding formal parameters.
 
 <p><a href="#toc">Table of contents</a><hr>
 
@@ -361,7 +508,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <h3 id="Lamp_Orient_Trans">Macro Lamp_Orient_Trans (pv_Base, v_Up, pv_Aim, Warning_up, Warning_aim)</h3>
 
-<p>Returns a transformation that reorients and repositions an initially upright fixture. The un-transformed fixture is assumed to be at the origin and facing the +<var>z</var> direction.
+<p>Returns a transformation that reorients and repositions an initially upright fixture. The un-transformed fixture is assumed to be at the origin and facing the +<var>z</var> direction. This macro is like <code>Lamp_Rotation_Trans()</code>, except that indeterminate argument conditions are recorded via its arguments.
 
 <h4>Arguments</h4>
 <p>Scalar arguments will be automatically promoted to vectors where necessary.
@@ -376,7 +523,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
  </tr><tr>
   <td><code>v_Up</code></td>
   <td>vector</td>
-  <td>The desired direction of the fixture’s vertical axis. If the null vector is used, then <code>y</code> is assumed.</td>
+  <td>The desired direction of the fixture’s vertical axis. If it is the null vector, then <code>y</code> is assumed.</td>
   <td>input</td>
  </tr><tr>
   <td><code>pv_Aim</code></td>
@@ -400,12 +547,108 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <p><a href="#toc">Table of contents</a><hr>
 
-<h3 id="Lamp_Source">Macro Lamp_Source (s_Caller, pv_Location, c_Light, Fade, v4_Soft, Photons, s_Hood, zHood, Xform)</h3>
+<h3 id="Lamp_Panel_Material">Macro Lamp_Panel_Material (c_Light, c_Panel, Gloss, IoR, Tightness)</h3>
+
+<p>Returns a material suitable for a glowing light panel. If the POV-Ray version or <code>#version</code> is less than 3.7, the brightness will vary over the viewing angle according to <code>Tightness</code>.
+
+<p><strong>Warning:</strong> If the POV-Ray version or <code>#version</code> is less than 3.7, then <code>global_settings { ambient_light }</code> must remain at its default setting for this macro to work properly.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>c_Light</code></td>
+  <td>color</td>
+  <td>The light emission color. Any filter or transmit components are ignored. This color will be filtered by <code>c_Panel</code>. An appropriate value is the <code>c_Surface_out</code> output from <a href="#Lamp_Lighting_Flat">macro <code>Lamp_Lighting_Flat()</code></a>. Use <code>rgb 0</code> if the light is off.</td>
+ </tr><tr>
+  <td><code>c_Panel</code></td>
+  <td>color</td>
+  <td>The color of the panel. Any filter or transmit components are ignored.</td>
+ </tr><tr>
+  <td><code>Gloss</code></td>
+  <td>float</td>
+  <td>The glossiness of the material when unlit.</td>
+ </tr><tr>
+  <td><code>IoR</code></td>
+  <td>float</td>
+  <td>The refractive index of the material.</td>
+ </tr><tr>
+  <td><code>Tightness</code></td>
+  <td>float</td>
+  <td>How rapidly the light intensity falls off as one moves to the side of the panel. Negative values will result in a parse error.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Rotation_Trans">Macro Lamp_Rotation_Trans (s_Caller, pv_Base, v_Up, v_Aim)</h3>
+
+<p>Returns a transformation that reorients and repositions an initially upright fixture. The un-transformed fixture is assumed to be at the origin and facing the +<var>z</var> direction. This macro is like <code>Lamp_Orient_Trans()</code>, except that indeterminate arguments result in a warning.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>s_Caller</code></td>
+  <td>string</td>
+  <td>The name of the calling macro.</td>
+ </tr><tr>
+  <td><code>pv_Base</code></td>
+  <td>point vector</td>
+  <td>The desired location of the base of the fixture, using the same unit of length as <code>pv_Aim</code>.</td>
+ </tr><tr>
+  <td><code>v_Up</code></td>
+  <td>vector</td>
+  <td>The desired direction of the fixture’s vertical axis. If it is the null vector, then a warning is issued and <code>y</code> is assumed.</td>
+ </tr><tr>
+  <td><code>pv_Aim</code></td>
+  <td>point vector</td>
+  <td>A point in the direction at which the fixture will be facing, using the same unit of length as <code>pv_Base</code>. If this point is on the line passing through <code>pv_Base</code> along the direction of <code>v_Up</code>, then a warning is issued and the final orientation will be indeterminate.</td>
+ </tr>
+</table>
+
+<p>Warnings issued by <code>Lamp_Rotation_Trans()</code> will cite the formal parameters <code>pv_Base</code>, <code>v_Up</code>, and <code>v_Aim</code> by name; therefore, it will be helpful to the end user that any lamp macro that calls <code>Lamp_Rotation_Trans()</code> use the same names for its own corresponding formal parameters.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Smooth_Neck">Macro Lamp_Smooth_Neck (Length, Radius, Flex, t_Texture)</h3>
+
+<p>A cylinder that can be bent along a circular arc. The object in its unbent state is oriented vertically, with the bottom end at the origin.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Length</code></td>
+  <td>float</td>
+  <td>The length of the cylinder.</td>
+ </tr><tr>
+  <td><code>Radius</code></td>
+  <td>float</td>
+  <td>The radius of the cylinder.</td>
+ </tr><tr>
+  <td><code>Flex</code></td>
+  <td>float</td>
+  <td>The amount of bending, in degrees. A positive value flexes in the <var>z</var> direction, and a negative value flexes in the &minus;<var>z</var> direction. The allowable range is &minus;180 to 180.</td>
+ </tr><tr>
+  <td><code>t_Texture</code></td>
+  <td>texture</td>
+  <td>The object’s texture. The texture will be bent with the object.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Source">Macro Lamp_Source (s_Caller, pv_Location, c_Light, Fade, uv_Size, v4_Soft, Tightness, Photons, s_Type, zHood, Xform)</h3>
 
 <p>Creates a light source with a fade power of 2. If <code>Lamp_Debug</code> is <code>true</code>, then SDL code for the light source, and optionally, a simplified lamp fixture hood, is written to the debug stream.
 
 <h4>Arguments</h4>
 <p>Scalar arguments will be automatically promoted to colors or vectors where necessary.
+<p><strong>Warning!</strong> These arguments have changed since version 1.0 of DeskLamp!
 <table>
  <tr>
   <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
@@ -420,49 +663,64 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
  </tr><tr>
   <td><code>c_Light</code></td>
   <td>color</td>
-  <td>The color of the light. The brightness of this color should be pre-adjusted for attenuation; an appropriate value can be obtained by multiplying <code>c_Light_out</code> and <code>Light_brightness_out</code> outputs from <a href="#Lamp_Lighting">macro <code>Lamp_Lighting()</code></a>.</td>
+  <td>The color of the light. The brightness of this color should be pre-adjusted for attenuation; an appropriate value can be obtained by multiplying <code>c_Light_out</code> and <code>Light_brightness_out</code> outputs from macro <a href="#Lamp_Lighting"><code>Lamp_Lighting()</code></a> or <a href="#Lamp_Lighting_Flat"><code>Lamp_Lighting_Flat()</code></a>.</td>
  </tr><tr>
   <td><code>Fade</code></td>
   <td>float</td>
-  <td>The fade distance, in centimeters. An appropriate value is the <code>Fade_distance_out</code> output from <a href="#Lamp_Lighting">macro <code>Lamp_Lighting()</code></a>.</td>
+  <td>The fade distance, in centimeters. An appropriate value is the <code>Fade_distance_out</code> output from macro <a href="#Lamp_Lighting"><code>Lamp_Lighting()</code></a> or <a href="#Lamp_Lighting_Flat"><code>Lamp_Lighting_Flat()</code></a>.</td>
+ </tr><tr>
+  <td><code>uv_Size</code></td>
+  <td>2-D vector</td>
+  <td>The size of the emitting structure, in centimeters. Use a null vector to turn off area lights.</td>
  </tr><tr>
   <td><code>v4_Soft</code></td>
   <td>vector/4-tuple</td>
-  <td><p>Area light control; the components are:
+  <td><p>Area light control. This argument applies only if <code>v_Size</code> is not null. The components are:
    <dl class="inline">
     <dt><code>.x</code>
-    <dd>The diameter of the area light in centimeters, or use 0 for a point light.
+    <dd>The sampling resolution of the area light in the side-to-side direction.
     <dt><code>.y</code>
-    <dd>The sampling resolution of the area light, corresponding to <code>Size_1</code> and <code>Size_2</code> in the POV-Ray Reference. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dd>The sampling resolution of the area light in the vertical direction.
     <dt><code>.z</code>
-    <dd>The area light adaptive level. This applies only if the <code><code>.x</code></code> component is nonzero.
+    <dd>The area light adaptive level.
     <dt><code>.t</code>
-    <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only, and applies only if the <code>.x</code> component is nonzero.
+    <dd>Boolean: whether or not to use area illumination. This works for POV-Ray 3.7 and later only.
    </dl>
   </td>
+ </tr><tr>
+  <td><code>Tightness</code></td>
+  <td>float</td>
+  <td>How rapidly the light intensity falls off as one moves to the side of the lamp. Negative values will result in a parse error if used with <code>s_Type</code> values that use tightness.</td>
  </tr><tr>
   <td><code>Photons</code></td>
   <td>float/Boolean</td>
   <td>Whether or not the light shoots photons.</td>
  </tr><tr>
-  <td><code>s_Hood</code></td>
+  <td><code>s_Type</code></td>
   <td>string</td>
   <td>This argument serves two functions: to determine what sort of light to create, and&mdash;if <code>Lamp_Debug</code> is <code>true</code>&mdash;to determine the style of hood to be coded in the debug stream output. Recognized styles are as follows:
    <dl class="compact">
-    <dt><code>""</code> (the null string)
-    <dd>The light source will be a 180&deg; spotlight with a cosine falloff. The light source code, if written, will be commented as radiosity replacement. No hood code will be written.
+    <dt><code>"flat rectangular"</code>
+    <dd>The light source will be a 180&deg; spotlight. No hood code will be written.
+    <dt><code>"flat round"</code>
+    <dd>The light source will be a 180&deg; spotlight. If <code>v_Size</code> is not null, then the area light will be circular. No hood code will be written.
     <dt><code>"ovoid white"</code>
-    <dd>The light source will be omnidirectional, and the code, if written, will include a white hemispherical hood, elongated in the <var>z</var> direction prior to any transformations.
+    <dd>The light source will be omnidirectional, and the code, if written, will include a white hemispherical hood, elongated in the <var>z</var> direction prior to any transformations. If <code>v_Size</code> is not null, then the area light will be circular and orient. <code>Tightness</code> is ignored.
+    <dt><code>""</code> (the null string) or <code>"radiosity"</code>
+    <dd>The light source will be a 180&deg; spotlight with a cosine falloff; <code>Tightness</code> is ignored. If <code>v_Size</code> is not null, then the area light will be circular. The light source code, if written, will be commented as radiosity replacement. No hood code will be written.
+    <dt><code>"spherical"</code>
+    <dd>The light source will be omnidirectional. If <code>v_Size</code> is not null, then the area light will be circular and orient. <code>Tightness</code> is ignored, and no hood code will be written.
    </dl>
+   <p>This argument is not case sensitive.
   </td>
  </tr><tr>
   <td><code>zHood</code></td>
   <td>float</td>
-  <td>How far the hood of the lamp fixture extends beyond the <em>center</em> of the light source, in centimeters. This argument is relevant only if <code>Lamp_Debug</code> is <code>true</code>.</td>
+  <td>How far the hood of the lamp fixture extends beyond the <em>center</em> of the light source, in centimeters. This argument is relevant only if <code>Lamp_Debug</code> is <code>true</code> and if the lamp type includes a hood.</td>
  </tr><tr>
   <td><code>Xform</code></td>
   <td>transformation</td>
-  <td>A transformation to be applied to the light source. This should include any transformation to the light bulb and hood relative to the rest of the fixture, as well as the scaling and final positioning of the lamp fixture as a whole.
+  <td>A transformation to be applied to the light source. This should include any transformation to the light bulb and hood relative to the base of the fixture, as well as the scaling and final positioning of the lamp fixture as a whole.
   </td>
  </tr>
 </table>
@@ -471,7 +729,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 
 <h3 id="Lamp_Switch">Macro Lamp_Switch (State)</h3>
 
-<p>A light switch. The switch is rocker-style with a superellipse footprint, a surrounding rim, and a plastic-looking black texture. It is oriented horizontally and toggles in the <var>z</var>-direction.
+<p>A light switch. The switch is rocker-style with a superellipse footprint, a surrounding rim, and a plastic-looking black texture. It is oriented horizontally and toggles in the <var>z</var>-direction. The top of the rim is coincident with the <var>x</var>-<var>z</var> plane.
 
 <h4>Argument</h4>
 <table>
@@ -565,7 +823,7 @@ This manual describes tools used to construct the desk lamp. Ordinarily, you wil
 <h2 id="About">About DeskLamp</h2>
 
 <address>
- <p>Copyright © 2022 Richard Callwood III. Some rights reserved.
+ <p>Copyright © 2022, 2024 Richard Callwood III. Some rights reserved.
  <p>This library is free software; you can redistribute it and/or modify it under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html" target="_blank">GNU Lesser General Public License version 2.1</a> as published by the Free Software Foundation.
  <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 </address>

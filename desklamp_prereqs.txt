@@ -1,1 +1,1 @@
-RoundEdge, also available from the Object Collection
+RoundEdge 2.0 or later, also available from the Object Collection

@@ -1,3 +1,3 @@
-A flexible gooseneck desk lamp with a built-in light source. Light color and brightness are user-specified, and distance attenuation is handled automatically.
+Desk lamps with a flexible neck and built-in light source. Several lamp styles are available. Light color and brightness are user-specified, and distance attenuation is handled automatically.
 
 DeskLamp can be synchronized with Lightsys IV.
