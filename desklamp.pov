@@ -1,4 +1,4 @@
-/* desklamp.pov 2.0
+/* desklamp.pov 2.0.1
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -25,6 +25,7 @@
  *        2024-Jan-15  A finish highlight is corrected.
  * 2.0    2024-Jun-04  One of the hooded lamps is replaced with a flat panel
  *                     lamp.
+ * 2.0.1  2024-Jun-28  No change.
  */
 // +W800 +H600 +A0.1 +R5
 // +W1600 +H1200 +A0.1

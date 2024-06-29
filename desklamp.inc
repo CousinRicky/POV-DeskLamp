@@ -1,4 +1,4 @@
-/* desklamp.inc version 2.0
+/* desklamp.inc version 2.0.1
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection module
  *
@@ -31,6 +31,8 @@
  *        2024-Apr-28  Lamp_Source() is rewritten to accommodate future lamp
  *                     styles.
  * 2.0    2024-Jun-04  Flat panel lamp types are added.
+ * 2.0.1  2024-Jun-28  POV-Ray 3.8.beta bug workaround: a parameter is added to
+ *                     turn off true power inverse square attenuation.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -38,7 +40,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 2.0; #declare DESKLAMP__S_VSUFFIX = ""
+#declare DESKLAMP_VERSION = 2.01; #declare DESKLAMP__S_VSUFFIX = ""
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -87,6 +89,8 @@
 #ifndef (Lamp_c_Ambient)
   #declare Lamp_c_Ambient = rgb (version >= 3.8 | Lamp_Radiosity? 0: 0.1);
 #end
+// This may change to true after POV-Ray 3.8 is debugged:
+#ifndef (Lamp_True_Fade) #declare Lamp_True_Fade = false; #end
 
 #declare LAMP_CM = 1;
 #declare LAMP_FOOT = 30.48;
@@ -230,7 +234,7 @@
   (version >= 3.71)
 #end
 #macro Lamp__has_invsq() // true power light fading
-  (#if (Lamp_371Patch) version >= 3.71 #else version >= 3.8 #end)
+  (version >= (Lamp_371Patch? 3.71: 3.8) & Lamp_True_Fade)
 #end
 
 // A compromise for reasonable specular highlights when finish-level Fresnel is unavailable.

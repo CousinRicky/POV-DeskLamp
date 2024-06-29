@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 2.0.1 User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0 User&nbsp;Manual</h1>
+<h1>DeskLamp 2.0.1 User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
@@ -259,6 +259,13 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
   <td>float</td>
   <td>The number of centimeters per POV unit in your scene. See <a href="#Scale">scale conversions</a> for more information.</td>
   <td>1</td>
+ </tr><tr>
+  <td><code>Lamp_True_Fade</code></td>
+  <td>float/Boolean</td>
+  <td>If <code>false</code>, then POV-Ray 3.8’s true power inverse squared light fading will not be used. This parameter is necessary to avoid a photon mapping bug with beta versions of POV-Ray 3.8. If your scene does not use photon mapping, you may set this parameter to <code>true</code>.
+   <p><strong>Note:</strong> This parameter’s default will likely be changed to <code>true</code> after the bug is fixed<!--; but keep in mind that the bug will still exist in unofficial POV-Ray patches based on older 3.8 beta versions or on the discontinued POV-Ray 3.7.1-->.
+  </td>
+  <td><code>false</code></td>
  </tr><tr>
   <td><code>Lamp_c_Weights</code></td>
   <td>color</td>
@@ -754,7 +761,7 @@ object
   <td><code>DESKLAMP_VERSION</code></td>
   <td>float</td>
   <td>The DeskLamp version, in case the scene file needs that information.</td>
-  <td>2.0</td>
+  <td>2.01</td>
  </tr>
 </table>
 
@@ -848,8 +855,16 @@ object
     <li>Flat panel flex-neck lamp styles are added.
    </ul>
   </td>
+ </tr><tr>
+  <td>2.0.1</td>
+  <td>2024 June 28</td>
+  <td>
+   <ul>
+    <li>Bug workaround: to avoid a bug with photons in POV-Ray 3.8 beta, a parameter is added to turn off true power inverse square attenuation.
+   </ul>
+  </td>
  </tr><!--tr>
-  <td>2.0A</td>
+  <td>2.0.1A</td>
   <td>20?? ??? ??</td>
   <td>
    <ul>
@@ -858,14 +873,12 @@ object
  </tr-->
 </table>
 
-<h3>Known Bugs</h3>
+<h3>Known Bug</h3>
 <ul>
  <li>The surface brightness of light bulbs is too dim in
   <a href="https://github.com/CousinRicky/POV-ShapeOfTheDay">ShapeOfTheDay</a>
-  indoor scenes under some circumstances. (The light output is unaffected by this bug.)
- <li>Caustics (from photons) from the hooded lamp appear abnormal in ShapeOfTheDay indoor scenes.
+  indoor scenes under some circumstances. (The light output is unaffected by this bug.) It is not yet known whether or not the problem is with DeskLamp or with ShapeOfTheDay.
 </ul>
-<p>It is not yet known whether or not these problems are with DeskLamp or with ShapeOfTheDay.
 
 <h3>Possible Future Development</h3>
 <ul>

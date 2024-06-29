@@ -1,4 +1,4 @@
-/* desklamp_ls4.pov 2.0
+/* desklamp_ls4.pov 2.0.1
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -27,6 +27,7 @@
  *        2022-Aug-24  Started.
  * 1.0    2022-Sep-06  Completed and uploaded.
  * 2.0    2024-Jan-15  A finish highlight is corrected.
+ * 2.0.1  2024-Jun-28  No change.
  */
 // +W600 +H800 +A0.1 +AM2
 #version max (3.5, min (3.8, version));

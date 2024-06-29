@@ -1,4 +1,4 @@
-/* desklamp_lighting.pov 2.0
+/* desklamp_lighting.pov 2.0.1
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -18,11 +18,11 @@
  * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
  * the text of the GNU Lesser General Public License version 2.1.
  *
- * Vers  Date         Notes
- * ----  ----         -----
- *       2021-Mar-24  Created.
- * 1.0   2022-Sep-06  Uploaded.
- * 2.0   2024-Jun-04  No change.
+ * Vers.  Date         Notes
+ * -----  ----         -----
+ *        2021-Mar-24  Created.
+ * 1.0    2022-Sep-06  Uploaded.
+ * 2.0.1  2024-Jun-28  No change.
  */
 #version max (3.5, min (3.8, version));
 
