@@ -1,22 +1,22 @@
-/* desklamp.inc version 2.0.1
+/* desklamp.inc version 2.??
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection module
  *
  * Desk lamps with a built-in light source that can be aimed.
  *
- * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2022 - 20?? Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
- * a.k.a. the GNU Lesser General Public License version 2.1.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License version 2.1 as published by the Free Software Foundation.
+ * This library is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  Please
- * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
- * the text of the GNU Lesser General Public License version 2.1.
+ * visit https://www.gnu.org/licenses/lgpl-3.0.html for the text
+ * of the GNU Lesser General Public License version 3.
  *
  * Vers.  Date         Notes
  * -----  ----         -----
@@ -33,6 +33,8 @@
  * 2.0    2024-Jun-04  Flat panel lamp types are added.
  * 2.0.1  2024-Jun-28  POV-Ray 3.8.beta bug workaround: a parameter is added to
  *                     turn off true power inverse square attenuation.
+ *        20??-???-??  ????????.
+ * 2.??   20??-???-??  The license is upgraded to LGPL 3.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.

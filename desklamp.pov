@@ -1,22 +1,22 @@
-/* desklamp.pov 2.0.1
+/* desklamp.pov 2.??
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
  * Demonstrates use of DeskLamp.
  *
- * Copyright (C) 2022, 2024 Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2022 - 20?? Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
- * a.k.a. the GNU Lesser General Public License version 2.1.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License version 2.1 as published by the Free Software Foundation.
+ * This library is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  Please
- * visit https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for
- * the text of the GNU Lesser General Public License version 2.1.
+ * visit https://www.gnu.org/licenses/lgpl-3.0.html for the text
+ * of the GNU Lesser General Public License version 3.
  *
  * Vers.  Date         Notes
  * -----  ----         -----
@@ -25,7 +25,7 @@
  *        2024-Jan-15  A finish highlight is corrected.
  * 2.0    2024-Jun-04  One of the hooded lamps is replaced with a flat panel
  *                     lamp.
- * 2.0.1  2024-Jun-28  No change.
+ * 2.0.1a 20??-???-??  The license is upgraded to LGPL 3.
  */
 // +W800 +H600 +A0.1 +R5
 // +W1600 +H1200 +A0.1

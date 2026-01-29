@@ -1,15 +1,14 @@
 /* desklamp.css
  *
- * Copyright 2022, 2024 Richard Callwood III.  Some rights reserved.
- * This file is licensed under the terms of the GNU LGPL 2.1.
- * See https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html for the text of
- * the license.
+ * Copyright 2022 - 20?? Richard Callwood III.  Some rights reserved.
+ * This file is licensed under the terms of the GNU-LGPL, version 3 or later.
+ * See https://www.gnu.org/licenses/lgpl-3.0.html for the text of the license.
  *
- * Version 2.0.1  2024-Jun-28
+ * Version 2.??  20??-???-??
  */
 a
 { text-decoration:none;
-  border:1px solid; border-color:white #999 #999 white; border-radius:3px;
+  border:1px solid; border-color:white gray gray white; border-radius:3px;
   padding:0 2px 0 2px;
 }
 a:link    { color:#00c; }
@@ -34,7 +33,7 @@ address
 }
 body
 { margin:0; padding:0 5%; line-height:1.2;
-  color:black; background:#f0eeea;
+  color:black; background:#eee;
 }
 code
 { font-family:"Consolas", "Lucida Console", "Liberation Mono", "Courier New", monospace;
@@ -91,7 +90,7 @@ h4
   padding:0;
   line-height:1.2;
   font-family:Arial, Helvetica, sans-serif;
-  background:#f0eeea; color:#333;
+  background:#eee; color:#333;
 }
 hr
 { display:none;
@@ -134,7 +133,7 @@ table
   margin:0.6em 0;
   padding:0;
   border:1px solid;
-  border-color:#fff #acaaa6 #acaaa6 #fff;
+  border-color:#fff #aaa #aaa #fff;
   border-collapse:separate;
   border-spacing:1px;
 }
@@ -168,8 +167,8 @@ th
 { line-height:1.2;
   padding:0 0.3em;
   border:1px solid;
-  border-color:#bdbbb7 #f9f7f3 #f9f7f3 #bdbbb7;
-  color:black; background:#dfddd9;
+  border-color:#bbb #f7f7f7 #f7f7f7 #bbb;
+  color:black; background:#ddd;
 }
 ul,
 .toc td ul
@@ -212,5 +211,5 @@ dl.compact, dl.inline
 { width:33%;
   vertical-align:top;
   border:none;
-  color:black; background:#f0eeea;
+  color:black; background:#eee;
 }
