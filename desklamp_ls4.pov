@@ -1,4 +1,4 @@
-/* desklamp_ls4.pov 2.??
+/* desklamp_ls4.pov 2.0.1a-rc.1  2026-Feb-16
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -8,7 +8,7 @@
  *     or
  *   https://news.povray.org/64cffd99%40news.povray.org
  *
- * Copyright (C) 2022 - 20?? Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2022 - 2026 Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
  *
  * This library is free software: you can redistribute it and/or modify it
@@ -28,7 +28,8 @@
  * 1.0    2022-Sep-06  Completed and uploaded.
  * 2.0    2024-Jan-15  A finish highlight is corrected.
  *        2024-Dec-22  The Lightsys URL is updated in the header comments.
- * 2.??   20??-???-??  The license is upgraded to LGPL 3.
+ * 2.0.1a-rc.1
+ *        2026-Feb-16  The license is upgraded to LGPL 3.
  */
 // +W600 +H800 +A0.1 +AM2
 #version max (3.5, min (3.8, version));
