@@ -1,4 +1,4 @@
-/* desklamp_ls4.pov 2.0.1a-rc.1  2026-Feb-16
+/* desklamp_ls4.pov 2.0.2-beta.1  2026-Jun-20
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -28,8 +28,7 @@
  * 1.0    2022-Sep-06  Completed and uploaded.
  * 2.0    2024-Jan-15  A finish highlight is corrected.
  *        2024-Dec-22  The Lightsys URL is updated in the header comments.
- * 2.0.1a-rc.1
- *        2026-Feb-16  The license is upgraded to LGPL 3.
+ * 2.0.2  2026-Feb-16  The license is upgraded to LGPL 3.
  */
 // +W600 +H800 +A0.1 +AM2
 #version max (3.5, min (3.8, version));

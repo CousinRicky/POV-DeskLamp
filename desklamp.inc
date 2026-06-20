@@ -1,4 +1,4 @@
-/* desklamp.inc version 2.0.1a-rc.1  2026-Feb-16
+/* desklamp.inc version 2.0.2-beta.1  2026-Jun-20
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection module
  *
@@ -26,15 +26,14 @@
  *        2024-Apr-03  The Lamp_Source() lamp type is made case insensitive.
  *        2024-Apr-04  A 0/1 marking is added to the lamp switch.
  *        2024-Apr-23  A dimmer dial option is added.
- *        2024-Apr-24  The binary switch is raised slightly, removing the need
- *                     to do so in lamp macros.
- *        2024-Apr-28  Lamp_Source() is rewritten to accommodate future lamp
- *                     styles.
+ *        2024-Apr-24  The binary switch is raised slightly, removing the need to do so in lamp
+ *                     macros.
+ *        2024-Apr-28  Lamp_Source() is rewritten to accommodate future lamp styles.
  * 2.0    2024-Jun-04  Flat panel lamp types are added.
- * 2.0.1  2024-Jun-28  POV-Ray 3.8.beta bug workaround: a parameter is added to
- *                     turn off true power inverse square attenuation.
- * 2.0.1a-rc.1
+ * 2.0.1  2024-Jun-28  POV-Ray 3.8.beta bug workaround: a parameter is added to turn off true power
+ *                     inverse square attenuation.
  *        2026-Feb-16  The license is upgraded to LGPL 3.
+ * 2.0.2  (in testing) Bug fix: interior hood illumination is fixed for colored bulbs.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -42,7 +41,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 2.01; #declare DESKLAMP__S_VSUFFIX = "a-rc.1"
+#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = "-beta.1"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1314,7 +1313,8 @@
       #end
     #else // ambient only: estimate radiosity within hood interior:
       #local lamp_Refl_portion = 1 - pow (lamp_rBulb / lamp_rInt, 2);
-      #local lamp_Rad = lamp_c_Surface * lamp_Refl_portion;
+      //@@ #local lamp_Rad = lamp_c_Surface * lamp_Refl_portion;
+      #local lamp_Rad = lamp_c_Surface * lamp_Refl_portion * c_Bulb;
     #end
   #end // lamp_IsLit
   // Halve the surface brightnesses of the bulb and hood interior for 3.5/3.6,
@@ -1698,7 +1698,8 @@
   #if (lamp__Dbg_fade)
     #debug concat ("( \"", s_Caller, "\", ", Lamp__cstr (c_Light, 4), ",\n")
     #debug concat
-    ( "  ", Lamp__cstr (c_Bulb, 4), ", ", Lamp__str (rBulb, 3), ", ", Lamp__str (Brightness, 4), ",\n"
+    ( "  ", Lamp__cstr (c_Bulb, 4), ", ", Lamp__str (rBulb, 3), ", ", Lamp__str (Brightness, 4),
+      ",\n"
     )
     #debug concat
     ( "  ", Lamp__cstr (c_Light_out, 4), ", ", Lamp__str (Light_brightness_out, 4), ", ",
@@ -1735,7 +1736,8 @@
     #declare Fade_distance_out = Lamp_Fade; // arbitrarily tiny
     // Inverse of POV's old attenuation formula, doubled because
     // we light only a hemisphere, then adjusted for tightness:
-    #declare Light_brightness_out = (1 + pow (LAMP__DLUMENEQLUX / Fade_distance_out, 2)) * (Tightness + 1);
+    #declare Light_brightness_out =
+      (1 + pow (LAMP__DLUMENEQLUX / Fade_distance_out, 2)) * (Tightness + 1);
   #end
   #local lamp_Ahemisphere = 2 * pi * pow (LAMP__DLUMENEQLUX, 2); // should be 5000 by definition
   #declare c_Surface_out = lamp_C * lamp_Ahemisphere * (Tightness + 1)
@@ -2081,7 +2083,8 @@
     #if (lamp_Warn_area)
       #if (lamp_Circular)
         #if (lamp_v_Soft.x < 2 | lamp_v_Soft.y < 2)
-          #warning concat (lamp_s_Intro, "Area light resolution is ", vstr (2, lamp_v_Soft, ", ", 0, 3))
+          #warning
+            concat (lamp_s_Intro, "Area light resolution is ", vstr (2, lamp_v_Soft, ", ", 0, 3))
           #warning "Area light resolution must be at least 2, 2 for a circular area light; changed accordingly."
         #end
       #else
@@ -2115,7 +2118,8 @@
   #else
     #if (lamp_uv_Size.x != 0 | lamp_uv_Size.y != 0)
       #warning concat
-      ( lamp_s_Intro, "light size is ", Lamp__uvstr (lamp_uv_Size, 4), " cm; area light is not used."
+      ( lamp_s_Intro, "light size is ", Lamp__uvstr (lamp_uv_Size, 4),
+        " cm; area light is not used."
       )
     #end
   #end
