@@ -1,4 +1,4 @@
-/* desklamp.pov 2.0.2-beta.1  2026-Jun-20
+/* desklamp.pov 2.0.2-rc.1  2026-Jun-29
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *

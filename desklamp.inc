@@ -1,4 +1,4 @@
-/* desklamp.inc version 2.0.2-beta.1  2026-Jun-20
+/* desklamp.inc version 2.0.2-rc.1  2026-Jun-29
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection module
  *
@@ -33,7 +33,7 @@
  * 2.0.1  2024-Jun-28  POV-Ray 3.8.beta bug workaround: a parameter is added to turn off true power
  *                     inverse square attenuation.
  *        2026-Feb-16  The license is upgraded to LGPL 3.
- * 2.0.2  (in testing) Bug fix: interior hood illumination is fixed for colored bulbs.
+ * 2.0.2  2026-Jun-29  Bug fix: interior hood illumination is corrected for colored bulbs.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -41,7 +41,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = "-beta.1"
+#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = "-rc.1"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1292,7 +1292,7 @@
   #local lamp_Rad = rgb 0;
   #if (lamp_IsLit)
     #local lamp_Dims = max_extent (Bulb) - min_extent (Bulb);
-    #local lamp_dBulb = (lamp_Dims.x + lamp_Dims.z) / 2; // bulb diameter
+    #local lamp_dBulb = sqrt (lamp_Dims.x * lamp_Dims.z); // bulb diameter
     #local lamp_rBulb = lamp_dBulb / 2;
     Lamp_Lighting
     ( lamp_This, lamp_L, lamp_B, lamp_rBulb, Brightness * Status,
@@ -1313,7 +1313,6 @@
       #end
     #else // ambient only: estimate radiosity within hood interior:
       #local lamp_Refl_portion = 1 - pow (lamp_rBulb / lamp_rInt, 2);
-      //@@ #local lamp_Rad = lamp_c_Surface * lamp_Refl_portion;
       #local lamp_Rad = lamp_c_Surface * lamp_Refl_portion * c_Bulb;
     #end
   #end // lamp_IsLit
