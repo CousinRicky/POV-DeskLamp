@@ -1,10 +1,10 @@
-/* desklamp.inc version 2.0.2-rc.1  2026-Jun-29
+/* desklamp.inc version 3.0-alpha
  * Persistence of Vision Raytracer include file
- * A proposed POV-Ray Object Collection module
+ * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
  *
- * Copyright (C) 2022 - 2026 Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2022 - 20?? Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
  *
  * This library is free software: you can redistribute it and/or modify it
@@ -34,6 +34,7 @@
  *                     inverse square attenuation.
  *        2026-Feb-16  The license is upgraded to LGPL 3.
  * 2.0.2  2026-Jun-29  Bug fix: interior hood illumination is corrected for colored bulbs.
+ * 3.0    20??-???-??  Implied textures (switches, metals, etc.) can be modified.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -41,7 +42,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = "-rc.1"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260711"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -93,6 +94,22 @@
 // This may change to true after POV-Ray 3.8 is debugged:
 #ifndef (Lamp_True_Fade) #declare Lamp_True_Fade = false; #end
 
+// Colors and materials
+#ifndef (Lamp_grBlack) #declare Lamp_grBlack = 0.015; #end
+#ifndef (Lamp_grWhite) #declare Lamp_grWhite = 0.9; #end
+#ifndef (Lamp_grSocket) #declare Lamp_grSocket = 0.75; #end
+/* Tentative steel colors:
+rgb <0.530, 0.510, 0.495> = hsv <25.714, 0.066, 0.530> = #C0BDBB
+rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
+*/
+#ifndef (Lamp_c_Metal) #declare Lamp_c_Metal = rgb <0.485, 0.470, 0.455>; #end //@@TENTATIVE!
+#ifndef (Lamp_c_Hardware) #declare Lamp_c_Hardware = rgb <0.49, 0.55, 0.58>; #end
+#ifndef (Lamp_c_Padding) #declare Lamp_c_Padding = rgb 0.03; #end
+#ifndef (Lamp_c_Switch_Neg) #declare Lamp_c_Switch_Neg = rgb 0.015; #end
+#ifndef (Lamp_c_Switch_Pos) #declare Lamp_c_Switch_Pos = rgb 0.8; #end
+#ifndef (Lamp_i_Metal) #declare Lamp_i_Metal = interior { } #end
+
+// Dimensions
 #declare LAMP_CM = 1;
 #declare LAMP_FOOT = 30.48;
 #declare LAMP_INCH = 2.54;
@@ -681,7 +698,7 @@
         #end
         texture
         { finish { Lamp_Finish_Base (1, 1) }
-          pigment { rgb 0.03 }
+          pigment { Lamp_c_Padding }
           normal { quilted -1 scale 0.15 translate (LAMP__HPAD - 0.15) / 2 }
         }
       }
@@ -1094,7 +1111,7 @@
     { Lamp_Finish_Base (1, 1)
       specular 0.215 roughness 0.03
     }
-    pigment { rgb 0.015 }
+    pigment { Lamp_c_Switch_Neg }
   }
   union
   { object
@@ -1121,20 +1138,21 @@
               }
             }
           }
-          texture { lamp_T pigment { rgb 0.8 } } // pointer
+          texture { lamp_T pigment { Lamp_c_Switch_Pos } } // pointer
         }
       }
     }
     cylinder // connecting rod
     { -y, LAMP__DIAL_GAP * y, 1/8
-      texture
-      { pigment { rgb <0.53, 0.51, 0.49> }
+      /*texture
+      { pigment { rgb Lamp_c_Metal }
         finish
         { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP)
           reflection { 0.9 metallic }
           #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
         }
-      }
+      }*/
+      Lamp_Metal_m (LAMP__DIAL_GAP) // occlusion is essentially the sine of the gap:radius
     }
     scale LAMP_INCH / 2
   }
@@ -1328,15 +1346,15 @@
  // an A19 bulb.
   #local lamp_t_Exterior = texture { finish { Lamp_Finish_Base (1, 1) } }
   #local lamp_t_Hood_hardware = texture
-  { pigment { rgb <0.53, 0.51, 0.49> }
+  { pigment { rgb Lamp_c_Hardware }
     finish
     { Lamp_Lit_Finish (0.5, 0.5, lamp_Rad * 0.12)
       brilliance 5/3
       specular 1.59 metallic roughness 0.01
     }
   }
-  #local lamp_t_Metal = texture
-  { pigment { rgb <0.53, 0.51, 0.49> }
+  /*#local lamp_t_Metal = texture
+  { pigment { rgb Lamp_c_Metal }
     #if (mod (lamp_v_Flags.x, 2) = 1)
       finish
       { Lamp_Finish_Base (0.05, 1)
@@ -1350,7 +1368,21 @@
         specular 1.59 metallic roughness 0.01
       }
     #end
-  }
+  }*/
+  #if (mod (lamp_v_Flags.x, 2) = 1)
+    #local lamp_m_Metal = Lamp_Metal_m (1)
+  #else // e.g., for radiosity pass 1
+    #local lamp_m_Metal = material
+    { texture
+      { pigment { rgb Lamp_c_Metal }
+        finish
+        { Lamp_Finish_Base (0.5, 1)
+          brilliance 5/3
+          specular 1.59 metallic roughness 0.01
+        }
+      }
+    }
+  #end
 
  // Vary the interior ambients to give the impression of radiosity.
   #local LAMP_ZBLOB = 2.1; // eyeballed hood curve reversal
@@ -1373,7 +1405,7 @@
     scale LAMP__DHOOD - LAMP__Z0
     translate LAMP__Z0 * z
   }
-  #local lamp_T = texture { pigment { rgb 0.75 } }
+  #local lamp_T = texture { pigment { rgb Lamp_grSocket } }
   #local lamp_t_Supports = texture
   { gradient z texture_map
     { [0.0 lamp_T finish { Lamp_Lit_Finish (1, 0.35, lamp_Rad * 0.075) }]
@@ -1433,14 +1465,14 @@
     object
     { Lamp__wire
       texture
-      { pigment { rgb 0.015 }
+      { pigment { rgb Lamp_grBlack }
         finish { Lamp_Lit_Finish (1, 0.5, lamp_Rad * 0.15) }
       }
     }
     object
     { Lamp__wire
       texture
-      { pigment { rgb 0.9 }
+      { pigment { rgb Lamp_grWhite }
         finish { Lamp_Lit_Finish (1, 0.5, lamp_Rad * 0.15) }
       }
       scale <-1, 1, 1>
@@ -1553,7 +1585,7 @@
       { 0, LAMP__HPAD * y, LAMP_RBASE
         texture
         { lamp_t_Exterior
-          pigment { rgb 0.03 }
+          pigment { Lamp_c_Padding }
           normal { quilted -1 scale 0.15 translate (LAMP__HPAD - 0.15) / 2 }
         }
       }
@@ -1779,6 +1811,25 @@
 ( #local lamp_G = color Color * Lamp_c_Weights;
   lamp_G.red + lamp_G.green + lamp_G.blue
 )
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Metal_m (Occlusion)
+  material { texture { Lamp_Metal_t (Occlusion) } }
+#end
+
+//----------------------------------------------------------
+
+#macro Lamp_Metal_t (Occlusion)
+  texture
+  { pigment { Lamp_c_Metal }
+    finish
+    { Lamp_Finish_Base (0.05, Occlusion)
+      reflection { 0.9 metallic }
+      #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
+    }
+  }
 #end
 
 //----------------------------------------------------------
@@ -2276,7 +2327,7 @@
               cylinder { -y, y, 0.25 translate -0.5 * z }
             }
           }
-          rgb 0.015 rgb 0.8
+          Lamp_c_Switch_Neg Lamp_c_Switch_Pos
         }
         rotate -LAMP_ROTN / 2 * x
       }

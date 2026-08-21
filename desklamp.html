@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0.2-rc.1 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-alpha User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0.2-rc.1 User&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-alpha User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
@@ -22,6 +22,7 @@ The color and brightness of the light are specified by the user, and realistic l
 <p>A hooded lamp and two flat panel styles are defined.
 
 <p>If you use Lightsys IV, you can synchronize DeskLamp and Lightsys IV.
+Version 3.0 can be used with LILYsoft SpectralRender
 
 <hr>
 
@@ -88,7 +89,9 @@ The color and brightness of the light are specified by the user, and realistic l
   <td>The user manual (this document)</td>
  </tr><tr>
   <td><code>desklamp.inc</code></td>
-  <td>The DeskLamp library</td>
+  <td rowspan="2">The DeskLamp library</td>
+ </tr><tr>
+  <td><code>desklamp_spectral.inc</code></td>
  </tr><tr>
   <td><code>desklamp.pov</code></td>
   <td>A scene description file demonstrating the use of DeskLamp</td>
@@ -98,6 +101,9 @@ The color and brightness of the light are specified by the user, and realistic l
  </tr><tr>
   <td><code>desklamp_ls4.pov</code></td>
   <td>A scene description file demonstrating usage of DeskLamp with Lightsys IV</td>
+ </tr><tr>
+  <td><code>desklamp_spectral.pov</code></td>
+  <td>A scene description file demonstrating usage of DeskLamp with spectral rendering</td>
  </tr><tr>
   <td><code>desklamp.jpg</code></td>
   <td rowspan="4">Sample output images</td>
@@ -148,11 +154,23 @@ Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.po
   (<a href="https://github.com/CousinRicky/POV-RoundEdge" target="_blank">RoundEdge mirror</a>).
 </ul>
 
-<p>The demo scene <code>desklamp_ls4.pov</code> requires <a href="http://www.ignorancia.org/index.php?page=lightsys" target="_blank">Lightsys IV</a> version 4b or later
-(<a href="https://news.povray.org/64cffd99%40news.povray.org" target="_blank">mirror</a> and
-<a href="https://web.archive.org/web/20230609145607/http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">documentation archive</a>);
-however, the sole purpose of this scene is to demonstrate how DeskLamp can be used alongside Lightsys.
-Lightsys is not a prerequisite for usage of the DeskLamp library.
+<h4>Optional</h4>
+
+<dl class="compact">
+ <dt>POV-Ray 3.7 or later:
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and demo scene <code>desklamp_spectral.pov</code>.
+ <dt><a href="http://www.ignorancia.org/index.php?page=lightsys" target="_blank">Lightsys IV</a> version 4b or later
+  (<a href="https://news.povray.org/64cffd99%40news.povray.org" target="_blank">mirror</a> and
+  <a href="https://web.archive.org/web/20230609145607/http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">documentation archive</a>):
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and
+  demo scenes <code>desklamp_ls4.pov</code> and <code>desklamp_spectral.pov</code>.
+ <dt><a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">LILYsoft SpectralRender</a>:
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and demo scene <code>desklamp_spectral.pov</code>.
+ <dt><a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender add-on</a>:
+ <dd>Used by demo scene <code>desklamp_spectral.pov</code> if available.
+</dl>
+
+<p>The DeskLamp library can be used without these.
 
 <h3 id="Compliance">Namespace Compliance</h3>
 
@@ -171,12 +189,29 @@ or any identifiers that start with any of these prefixes plus an underscore.
 In addition, RoundEdge uses  <code>shapes.inc</code>.
 The identifier <code>View_POV_Include_Stack</code> from the standard include file <code>debug.inc</code> is referenced by <code>desklamp.inc</code>, although <code>debug.inc</code> itself is not used.
 
-<p>DeskLamp has two macros that interface with Lightsys IV.
-These macros reference certain Lightsys IV identifiers, prefixed with “<code>Lightsys_</code>,”
-but DeskLamp will not invoke these identifiers unless the user explicitly calls these macros.
-Note that, as Lightsys is not part of the Object Collection,
-there is no guarantee that its identifiers and file names will not conflict with those of compliant Object Collection contributions.
-If you decide to use Lightsys IV, do not keep Lightsys IV in the same folder as your Object Collection libraries.
+<h4>Interaction with Non-Object Collection Libraries</h4>
+
+<p>DeskLamp has features that interact with libraries Lightsys IV and SpectralRender,
+which are not part of the Object collection.
+As such, there is no guarantee that their identifiers and file names
+will not conflict with those of compliant Object Collection contributions.
+If you decide to download these libraries,
+do not keep them in the same folder as your Object Collection libraries,
+but do keep them in your <a href="https://wiki.povray.org/content/Reference:Scene_Parsing_Options#Library_Paths">library path</a>.
+
+<p>If necessary, most Lightsys identifiers can be destroyed by macro <code>CIE_ReleaseMemory()</code>
+after there is no further use of the features of Lightsys and SpectralRender.
+As of the release of DeskLamp 3.0,
+the Lightsys identifiers that remain do not conflict with any compliant Object Collection libraries.
+
+<p>SpectralRender has no deallocation macro,
+but as of the release of DeskLamp 3.0,
+there is only one compliant Object Collection contribution with a potential conflict:
+GemCuts shares a prefix with one of SpectralRender’s macros,
+but GemCuts has been written to avoid that specific conflict.
+
+
+<p>Interaction with these two libraries can be avoided by not using macros <code>Lamp_Get_Lightsys()</code> and <code>Lamp_Get_Lightsys()</code>, and not including file <code>desklamp_spectral.inc</code>.
 
 <h3 id="Usage">Usage</h3>
 
@@ -1031,7 +1066,7 @@ are considered “private” and are subject to change or elimination in a futur
 <h2 id="About">About DeskLamp</h2>
 
 <address>
- <p>Copyright © 2022 &ndash; 2026 Richard Callwood III. Some rights reserved.
+ <p>Copyright © 2022 &ndash; 20?? Richard Callwood III. Some rights reserved.
  <p>This library is free software; you can redistribute it and/or modify it under the terms of the
  <a href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a>
  as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1135,6 +1170,15 @@ are considered “private” and are subject to change or elimination in a futur
     <!--li>The library is submitted to the POV-Ray Object Collection.-->
    </ul>
   </td>
+ </tr><tr>
+  <td>3.0-alpha</td>
+  <td>20?? ??? ??</td>
+  <td>
+   <ul>
+    <li>Some implicit textures can be adjusted.
+    <li>An add-on for LILYsoft SpectralRender is created.
+   </ul>
+  </td>
  </tr>
 </table>
 
@@ -1143,7 +1187,6 @@ are considered “private” and are subject to change or elimination in a futur
  <li>Power cords. Power cords may be developed from separate Object Collection contributions.
  <li>More lamp styles
  <li>More light bulbs
- <li>Make DeskLamp compatible with LILYsoft’s SpectralRender.
 </ul>
 
 <h3 id="Links">Links</h3>

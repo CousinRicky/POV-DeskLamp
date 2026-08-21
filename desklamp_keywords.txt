@@ -1,3 +1,5 @@
+DeskLamp
+Lamp
 bulb
 desk lamp
 goose neck

@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0.2-rc.1 Technical Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-alpha Technical Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0.2-rc.1 Technical&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-alpha Technical&nbsp;Manual</h1>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
@@ -45,6 +45,8 @@ Ordinarily, you will not need to use these tools, but they may be used for const
    <ul>
     <li>Lamp construction tools, continued
      <ul>
+      <li><a href="#Lamp_Metal_m">Lamp_Metal_m</a>
+      <li><a href="#Lamp_Metal_t">Lamp_Metal_t</a>
       <li><a href="#Lamp_Orient_Trans">Lamp_Orient_Trans</a>
       <li><a href="#Lamp_Panel_Material">Lamp_Panel_Material</a>
       <li><a href="#Lamp_Rotation_Trans">Lamp_Rotation_Trans</a>
@@ -263,7 +265,8 @@ This macro should be called from within a <code>finish</code> block, and is not 
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument; or a smaller value for a darker ambient.
+   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   or a smaller value for a darker ambient.
   </td>
  </tr>
 </table>
@@ -347,7 +350,8 @@ If no such angle is possible, then a number greater than <var>&pi;</var> is retu
 
 <p>A flexible helical conduit, implemented as an isosurface.
 The object can be bent along a circular arc.
-The object in its unbent state is oriented vertically, with the bottom end at the origin.
+The object in its unbent state is oriented vertically,
+with the bottom end at the origin.
 It is 1.27 units in diameter, with 3 coils per unit along its length.
 
 <h4>Arguments</h4>
@@ -362,7 +366,8 @@ It is 1.27 units in diameter, with 3 coils per unit along its length.
   <td><code>Flex</code></td>
   <td>float</td>
   <td>The amount of bending, in degrees.
-   A positive value flexes in the <var>z</var> direction, and a negative value flexes in the &minus;<var>z</var> direction.
+   A positive value flexes in the <var>z</var> direction,
+   and a negative value flexes in the &minus;<var>z</var> direction.
    The allowable range is &minus;180 to 180.</td>
  </tr>
 </table>
@@ -585,7 +590,8 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument; or a smaller value for a darker ambient.
+   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   or a smaller value for a darker ambient.
   </td>
  </tr><tr>
   <td><code>c_Glow</code></td>
@@ -608,6 +614,46 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Color</code></td>
   <td>color</td>
   <td>The color to be evaluated.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Metal_m">Macro Lamp_Metal_m (Occlusion)</h3>
+
+<p>Returns a basic steel material.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Occlusion</code></td>
+  <td>float</td>
+  <td>An ambient multiplier.
+   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   a smaller value for a darker ambient; or 0 for no ambient.
+  </td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_Metal_t">Macro Lamp_Metal_t (Occlusion)</h3>
+
+<p>Returns a basic steel texture.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Occlusion</code></td>
+  <td>float</td>
+  <td>An ambient multiplier.
+   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   a smaller value for a darker ambient; or 0 for no ambient.
+  </td>
  </tr>
 </table>
 
@@ -1017,6 +1063,62 @@ the only reference I could find was on Wikipedia, and there was no sign of their
 Wikipedia’s figure, 110 mm, is longer than my A19 LED bulb, but shorter than my CFL (a spiriform compact fluorescent, probably around 800 lumens),
 so I just used the Wikipedia figure as a compromise and subtracted 24 mm for the screw-in base.
 
+<h3 id="Textures">Implicit Texture-Related Parameters</h3>
+
+<p>These values may be changed by the user at any time.
+
+<!-- The color values below are linear; background -->
+<!-- styles are sRGB encoded for CSS compliance.   -->
+<table>
+ <tr><th>Identifier</th> <th>Type</th> <th>Description</th> <th>Default</th></tr>
+ <tr>
+  <td><code>Lamp_grBlack</code></td>
+  <td>float</td>
+  <td>The gray-scale level of black wires.</td>
+  <td><span class="color" style="background:#212121"> </span> 0.015</td>
+ </tr><tr>
+  <td><code>Lamp_grSocket</code></td>
+  <td>float</td>
+  <td>The gray-scale level of bulb sockets and their support structures.</td>
+  <td><span class="color" style="background:#E1E1E1"> </span> 0.75</td>
+ </tr><tr>
+  <td><code>Lamp_grWhite</code></td>
+  <td>float</td>
+  <td>The gray-scale level of white wires.</td>
+  <td><span class="color" style="background:#F3F3F3"> </span> 0.9</td>
+ </tr><tr>
+  <td><code>Lamp_c_Hardware</code></td>
+  <td>color</td>
+  <td>Hardware color.</td>
+  <td><span class="color" style="background:#BAC4C8"> </span> <code>rgb &lt;0.49, 0.55, 0.58></code></td>
+ </tr><tr>
+  <td><code>Lamp_c_Metal</code></td>
+  <td>color</td>
+  <td>The color of bare metal parts.</td>
+  <td><span class="color" style="background:#B9B6B4"> </span> <code>rgb &lt;0.485, 0.470, 0.455></code></td>
+ </tr><tr>
+  <td><code>Lamp_c_Padding</code></td>
+  <td>color</td>
+  <td>The color of the padding under the base of a lamp.</td>
+  <td><span class="color" style="background:#303030"> </span> <code>rgb 0.03</code></td>
+ </tr><tr>
+  <td><code>Lamp_c_Switch_Neg</code></td>
+  <td>color</td>
+  <td>The base color of a switch.</td>
+  <td><span class="color" style="background:#212121"> </span> <code>rgb 0.015</code></td>
+ </tr><tr>
+  <td><code>Lamp_c_Switch_Pos</code></td>
+  <td>color</td>
+  <td>The color of markings on a switch.</td>
+  <td><span class="color" style="background:#E7E7E7"> </span> <code>rgb 0.8</code></td>
+ </tr><tr>
+  <td><code>Lamp_i_Metal</code></td>
+  <td>interior</td>
+  <td>An interior for bare metal parts.</td>
+  <td></td>
+ </tr>
+</table>
+
 <h3>Internal Identifiers</h3>
 
 <p>Any identifiers in <code>desklamp.inc</code> that are not documented in this Technical Manual or in the
@@ -1027,7 +1129,7 @@ so I just used the Wikipedia figure as a compromise and subtracted 24 mm for the
 <h2 id="About">About DeskLamp</h2>
 
 <address>
- <p>Copyright © 2022 &ndash; 2026 Richard Callwood III. Some rights reserved.
+ <p>Copyright © 2022 &ndash; 20?? Richard Callwood III. Some rights reserved.
  <p>This library is free software; you can redistribute it and/or modify it under the terms of the
  <a href="https://www.gnu.org/licenses/lgpl-3.0.html" target="_blank">GNU Lesser General Public License</a>
  as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
