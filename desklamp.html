@@ -202,7 +202,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
     This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
     <pre>global_settings { radiosity { count 50000, 100000 } }
 #default { radiosity { importance 0.002 } }</pre>
-    <p>Alternatively, you may do the same as for older POV-Ray versions, as described in the previous step.
+    <p>Alternatively, you may set <code>max_sample</code> and <code>Lamp_Max_Sample</code>, as described above.
   </ul>
  </li>
  <li>
