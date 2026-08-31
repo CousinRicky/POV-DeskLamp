@@ -1,10 +1,18 @@
-/* desklamp.pov version 3.0-alpha.20260830
+/* desklamp_spectral.pov version 3.0-alpha.20260830
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
- * Demonstrates use of DeskLamp.
+ * Demonstrates use of DeskLamp with LILYsoft SpectralRender.
+ * Download SpectralRender at:
+ *   https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm
+ * Download modified SpectralRender files for gamut mapping at:
+ *   https://github.com/CousinRicky/POV-SpectralRender-mods
+ * Download Lightsys IV at:
+ *   http://www.ignorancia.org/index.php?page=lightsys
+ *     or
+ *   https://news.povray.org/64cffd99%40news.povray.org
  *
- * Copyright (C) 2022 - 2026 Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2026 Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
  *
  * This library is free software: you can redistribute it and/or modify it
@@ -20,16 +28,25 @@
  *
  * Vers.  Date         Notes
  * -----  ----         -----
- *        2021-Dec-16  Started.
- * 1.0    2022-Sep-06  Completed and uploaded.
- *        2024-Jan-15  A finish highlight is corrected.
- * 2.0    2024-Jun-04  One of the hooded lamps is replaced with a flat panel
- *                     lamp.
- * 2.0.2  2026-Feb-16  The license is upgraded to LGPL 3.
+ * 3.0    2026-???-??  Adapted from desklamp.pov
  */
-// +W800 +H600 +A0.1 +R5
-// +W1600 +H1200 +A0.1
-#version max (3.5, min (3.8, version));
+// Preview:
+//   +W800 +H600 +A Declare=Preview=1
+// Pass 1:
+//   +W1600 +H1200 +A +AM1 +R3 +FE +KI1 +KF36 +KFI38 +KFF73
+// Pass 2:
+//   +W800 +H600 +A -J +AM1 +R2
+// Before running pass 2, make sure ALL of the #declare FName lines in
+// SpectralComposer.pov are commented out.
+//
+// After running pass 2, you may delete the integratelight_scene??.exr files.
+#version max (3.7, min (3.8, version));
+
+#ifndef (Preview) #declare Preview = no; #end
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CREATE THE SCENE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#if (clock_on | Preview)
 
 #ifndef (Lamp_Radiosity) #declare Lamp_Radiosity = yes; #end
 #ifndef (Draft) #declare Draft = 2; #end
@@ -37,27 +54,23 @@
 // Draft = 1: low quality area light; spiral normal on flexible neck
 // Draft = 2: high quality area light; flexible neck is an actual spiral
 
-#include "colors.inc"
+//#include "colors.inc"
 #include "desklamp.inc"
+#include "spectral.inc"
+#include "desklamp_spectral.inc"
 
 #declare Lamp_Scale = LAMP_FOOT;
-#declare Lamp_Lumen = 0.01;
-#declare Lamp_Diffuse = 0.75;
-#declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <8.8, 7.2, 6.4> * Lamp_Lumen);
-// We must set a default finish before #including woods.inc.  POV-Ray's default
-// diffuse is assumed:
-#default { finish { ambient Lamp_c_Ambient * 0.6 / Lamp_Diffuse diffuse 0.6 } }
-#include "woods.inc"
-// Now set our scene's default finish:
-#default { finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse } }
-
-#if (version < 3.7)
-  #if (Lamp_Radiosity) #declare Lamp_Max_Sample = 15; #end
-#else
-  #declare RAD_REGULAR = 500;
-  #declare RAD_IMPORTANT = 10000;
-  #default { radiosity { importance RAD_REGULAR / RAD_IMPORTANT } }
-#end
+#declare Lamp_Lumen = 0.01;//0.005;//
+#declare Lamp_Max_Sample = 15;
+#declare Lamp_Diffuse = 1;
+//#declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <8.8, 7.2, 6.4> * Lamp_Lumen); //@@ RECALCULATE THE AMBIENT!
+#declare Lamp_c_Ambient = rgb 0;
+#declare RAD_REGULAR = 400;//500;
+#declare RAD_IMPORTANT = 2000;//10000;
+#default
+{ finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse }
+  radiosity { importance RAD_REGULAR / RAD_IMPORTANT }
+}
 
 global_settings
 { assumed_gamma 1
@@ -66,17 +79,12 @@ global_settings
     radiosity
     { error_bound 0.5
       recursion_limit 2
-      #if (version < 3.7)
-        count 400
-        max_sample Lamp_Max_Sample
-        pretrace_end 0.01
-        pretrace_start 0.08
-      #else
-        count RAD_IMPORTANT, RAD_IMPORTANT * 17
-        nearest_count 10
-        pretrace_end 2 / image_width
-        pretrace_start 64 / image_width
-      #end
+      //count RAD_IMPORTANT, RAD_IMPORTANT * 17
+      count 400, 6472
+      max_sample Lamp_Max_Sample
+      nearest_count 10
+      pretrace_end 2 / image_width
+      pretrace_start 64 / image_width
     }
   #end
 }
@@ -94,11 +102,15 @@ camera
   angle 45
 }
 
+// Technical note: for glossy finishes, I use a layered texture rather than
+// M_Spectral_Shiny(), because the latter uses the obsolete pre-finish-level
+// Fresnel model.
+
 #declare t_Gloss = texture
 { pigment { rgbf 1 }
   finish
   { reflection { 1 fresnel } conserve_energy
-    specular 6.08464 roughness 0.001
+    specular albedo 1 roughness 0.001
   }
 }
 
@@ -106,17 +118,14 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 0.25 fresnel } conserve_energy
-    specular 0.155
-    roughness 0.01
+    specular albedo 0.25 roughness 0.01
   }
 }
 
-#declare i_Gloss = interior { ior 1.49 }
+//#declare i_Gloss = interior { ior 1.49 } //@@ IOR_Acryl
+#declare i_Gloss = interior { IOR_Spectral (IOR_Acryl) }
 
 //======================== THE LAMPS ===========================
-
-// All these examples use gamma conversion for the lamp texture,
-// but linear color for the light and bulb colors.
 
 #switch (Draft)
   #case (0)
@@ -133,7 +142,7 @@ camera
     #break
 #end
 
-// Hooded lamp with American scaling, aim point, white bulb,
+// Hooded lamp with American scaling, aim point, colored bulb,
 // wattage proxy, binary switch, & split texture:
 #declare t_Red = texture
 { pigment
@@ -141,13 +150,13 @@ camera
     { plane { y, 0 }
       pigment
       { radial color_map
-        { [0.5 Lamp_Color (Scarlet)]
-          [0.5 Lamp_Color (MediumVioletRed)]
+        { [0.5 C_Spectral (D_CC_C3)]
+          [0.5 C_Spectral (D_CC_E3)]
         }
         frequency 6
         rotate 15 * y
       }
-      pigment { Lamp_Color (Scarlet) }
+      pigment { C_Spectral (D_CC_C3) }
     }
   }
 }
@@ -155,28 +164,31 @@ texture { t_Gloss }
 object
 { Lamp_Flexneck
   ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
-    <0, HTABLE, RROOM - DTABLE + 0.5>, on, rgb <1.0000, 0.5574, 0.2422>,
-    Lamp_fn_Watts_to_Lumens (40), t_Red, Lamp_Bulb_A19,
-    rgb 1, Soft, off, <Quality, 0>
+    <0, HTABLE, RROOM - DTABLE + 0.5>, on, SpectralEmission (E_D50),
+    -Lamp_Spectral_Bright (Lamp_fn_Watts_to_Lumens (40), E_D50),
+    t_Red, Lamp_Bulb_A19,
+    C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
+    //rgb 1, Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
 // Hooded lamp with international scaling, aim angle, colored
 // bulb, binary switch, & split texture; switched off:
+#declare c_SeaGreen = C_Average (D_CC_B3, 1, D_CC_F3, 1);
 #declare t_Green = texture
 { pigment
   { object
     { plane { y, 0 }
       pigment
       { radial color_map
-        { [0.5 Lamp_Colour (SeaGreen)]
-          [0.5 Lamp_Colour (YellowGreen)]
+        { [0.5 c_SeaGreen]
+          [0.5 C_Spectral (D_CC_E2)]
         }
         frequency 6
         rotate 15 * y
       }
-      pigment { Lamp_Colour (SeaGreen) }
+      pigment { c_SeaGreen }
     }
   }
 }
@@ -184,20 +196,21 @@ texture { t_Gloss }
 object
 { Lamp_Flexneck
   ( 45, <0.25, HTABLE, RROOM - 0.9>, y,
-    <0, HTABLE, RROOM - 2, -20>, off, rgb 1,
-    -450, t_Green, Lamp_Bulb_A60,
-    CHSV2RGB (<45, 0.9, 1>), Soft, off, <Quality, 0>
+    <0, HTABLE, RROOM - 2, -20>, off, SpectralEmission (E_D50),
+    -Lamp_Spectral_Bright (450, E_D50),
+    t_Green, Lamp_Bulb_A60,
+    C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
 // Flat panel lamp with international scaling, aim angle,
-// colored bulb, & dimmer dial:
+// white bulb, & dimmer dial:
 #declare t_Blue = texture
 { pigment
   { radial color_map
-    { [0.5 Lamp_Colour (SlateBlue)]
-      [0.5 Lamp_Colour (DarkSlateBlue)]
+    { [0.5 C_Average (D_CC_F3, 2, D_CC_A3, 1)]
+      [0.5 C_Spectral (D_CC_A3)]
     }
     frequency 3
   }
@@ -206,9 +219,10 @@ texture { t_Low_gloss }
 object
 { Lamp_Flexneck_Rectangular
   ( 45, 12.5, <1, HTABLE, RROOM - DTABLE + 1>, y,
-    <0, HTABLE, RROOM - DTABLE + 1, -15>, 1, rgb 1,
-    -300, 2, t_Blue,
-    CHSV2RGB (<210, 0.8, 1>), 10, Soft, off, 1
+    <0, HTABLE, RROOM - DTABLE + 1, -15>, 1, SpectralEmission (E_D93),
+    Lamp_Spectral_Bright (200, E_D93),
+    2, t_Blue,
+    rgb 1, 10, Soft, off, 1
   )
   interior { i_Gloss }
 }
@@ -216,12 +230,30 @@ object
 
 box
 { -<RROOM, 0, RROOM>, <RROOM, 8, RROOM> hollow
-  pigment { rgb 1 }
+  pigment { C_Average (D_CC_A4, 1, D_CC_B4, 1) }
+}
+
+#declare d_Darkish = D_Average (D_CC_A1, 9, D_CC_D1, 1);
+#declare c_Dark_wood = C_Average (d_Darkish, 9, Value_0, 1);
+#declare c_Light_wood = C_Average (D_CC_A1, 9, D_CC_B1, 1);
+#declare p_Wood = pigment
+{ wood ramp_wave color_map
+  { [0.00 c_Light_wood]
+    [0.55 c_Dark_wood]
+    [0.65 c_Light_wood]
+    [0.80 c_Dark_wood]
+    [0.95 c_Dark_wood]
+    [1.00 c_Light_wood]
+  }
+  scale 1 / <1, 3, 1>
+  warp { turbulence <1, 1, 0> * 0.5 omega 0.4 }
+  scale <1, 3, 3> / 20
+  rotate 3
 }
 
 box
 { <-WTABLE / 2, HTABLE - 1/8, RROOM>, <WTABLE / 2, HTABLE, RROOM - DTABLE>
-  texture { T_Wood22 scale 0.5 rotate 90 * y translate HTABLE * y }
+  texture { pigment { p_Wood rotate 90 * y translate HTABLE * y } }
   texture { t_Low_gloss }
   interior { i_Gloss }
 }
@@ -263,8 +295,7 @@ box
 union
 { object
   { RE_Box (-PAPER_THIN * z, <WPAPER, HPAPER, 0>, PAPER_THIN / 2, no)
-    pigment { rgb 0.96 }
-    finish { ambient Lamp_c_Ambient / Lamp_Diffuse diffuse 1 }
+    pigment { C_Average (D_CC_A4, 1, Value_1, 1) }
   }
  // Note: actual text objects render A LOT faster than an object pigment.
   union
@@ -284,17 +315,34 @@ union
       #declare yLine = yLine - REGULAR * 1.2;
       #declare L = L + 1;
     #end
-    pigment { rgb 0.02 }
-    finish { ambient Lamp_c_Ambient / Lamp_Diffuse diffuse 1 }
+    pigment { C_Average (D_CC_F4, 5, Value_0, 3) }
     translate -PAPER_THIN * 1.1 * z
   }
   translate -WPAPER / 2 * x
   scale 1/12
   rotate 90 * x
   translate <0, HTABLE, RROOM - DTABLE + 1/12>
-  #if (version >= 3.7)
-    radiosity { importance sqrt (RAD_REGULAR / RAD_IMPORTANT) }
-  #end
+  radiosity { importance sqrt (RAD_REGULAR / RAD_IMPORTANT) }
 }
 
-// end of desklamp.pov
+//%%%%%%%%%%%%%%%%%%%%%%%%%%% ASSEMBLE THE FRAMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#else
+
+  #declare FName = "desklamp_spectral"
+  #ifndef (Whitepoint) #declare Whitepoint = 5003; #end
+  #if (file_exists ("SpectralComposer.inc"))
+    // from https://github.com/CousinRicky/POV-SpectralRender-mods
+    #declare GamutMap = 4; // luminance-based
+    #include "SpectralComposer.inc"
+  #else
+    // from original SpectralRender
+    // IMPORTANT:
+    // Make sure ALL of the #declare FName lines in SpectralComposer.pov
+    // are commented out, or the above #declare FName will be overridden!
+    // For proper white balance, also comment out the #declare Whitepoint line.
+    #include "SpectralComposer.pov"
+  #end
+
+#end
+
+// end of desklamp_spectral.pov

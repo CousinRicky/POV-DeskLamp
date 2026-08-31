@@ -1,4 +1,4 @@
-/* desklamp.inc version 3.0-alpha
+/* desklamp.inc version 3.0-alpha.20260830
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
@@ -42,7 +42,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260711"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260830"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1353,7 +1353,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
       specular 1.59 metallic roughness 0.01
     }
   }
-  /*#local lamp_t_Metal = texture
+  /**/#local lamp_t_Metal = texture
   { pigment { rgb Lamp_c_Metal }
     #if (mod (lamp_v_Flags.x, 2) = 1)
       finish
@@ -1368,7 +1368,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
         specular 1.59 metallic roughness 0.01
       }
     #end
-  }*/
+  }
   #if (mod (lamp_v_Flags.x, 2) = 1)
     #local lamp_m_Metal = Lamp_Metal_m (1)
   #else // e.g., for radiosity pass 1

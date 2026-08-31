@@ -1,4 +1,4 @@
-/* desklamp_spectral.inc version 3.0-alpha
+/* desklamp_spectral.inc version 3.0-alpha.20260830
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
@@ -111,7 +111,7 @@
 
   //@@ #declare Lamp_c_Weights = rgb 1/3;
 
-  #macro Lamp_Luminance (srColor)
+  #macro Lamp_SRLuminance (srColor)
   ( #local lamp_Acc = <0, 0, 0>;
     #for (lamp_I, 0, 35)
       #local lamp_Acc = lamp_Acc + CMF_xyz (WavelengthFromIndex (lamp_I)) * srColor [lamp_I];
@@ -124,13 +124,13 @@
 //----------------------------------------------------------
 
   #macro Lamp_Spectral_Bright (Brightness, srColor)
-    ( Brightness * srColor [WavelengthIndex] / Lamp_Luminance (srColor) )
+    ( Brightness * srColor [WavelengthIndex] / Lamp_SRLuminance (srColor) )
   #end
 
 #else //----------------------------------------------------
 
-  #macro Lamp_Spectral_Bright (srColor)
-    1
+  #macro Lamp_Spectral_Bright (Brightness, srColor)
+    Brightness
   #end
 
 #end

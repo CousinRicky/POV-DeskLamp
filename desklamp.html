@@ -106,11 +106,13 @@ Version 3.0 can be used with LILYsoft SpectralRender
   <td>A scene description file demonstrating usage of DeskLamp with spectral rendering</td>
  </tr><tr>
   <td><code>desklamp.jpg</code></td>
-  <td rowspan="4">Sample output images</td>
+  <td rowspan="5">Sample output images</td>
  </tr><tr>
   <td><code>desklamp_lighting.jpg</code></td>
  </tr><tr>
   <td><code>desklamp_ls4.jpg</code></td>
+ </tr><tr>
+  <td><code>desklamp_spectral.jpg</code></td>
  </tr><tr>
   <td><code>desklamp_thumbnail.jpg</code></td>
  </tr><tr>
@@ -211,7 +213,7 @@ GemCuts shares a prefix with one of SpectralRender’s macros,
 but GemCuts has been written to avoid that specific conflict.
 
 
-<p>Interaction with these two libraries can be avoided by not using macros <code>Lamp_Get_Lightsys()</code> and <code>Lamp_Get_Lightsys()</code>, and not including file <code>desklamp_spectral.inc</code>.
+<p>Interaction with these two libraries can be avoided by not using macros <code>Lamp_Get_Lightsys()</code> and <code>Lamp_Set_Lightsys()</code>, and not including file <code>desklamp_spectral.inc</code>.
 
 <h3 id="Usage">Usage</h3>
 
@@ -237,7 +239,7 @@ global_settings { radiosity { max_sample Lamp_Max_Sample } }</pre>
     This avoids radiosity artifacts due to the extreme surface brightness of the interior of the hood. For example:
     <pre>global_settings { radiosity { count 50000, 100000 } }
 #default { radiosity { importance 0.002 } }</pre>
-    <p>Alternatively, you may do the same as for older POV-Ray versions, as described in the previous step.
+    <p>Alternatively, you may set <code>max_sample</code> and <code>Lamp_Max_Sample</code>, as described above.
   </ul>
  </li>
  <li>

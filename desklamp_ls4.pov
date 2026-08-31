@@ -1,4 +1,4 @@
-/* desklamp_ls4.pov 2.0.2-rc.1  2026-Jun-29
+/* desklamp_ls4.pov version 3.0-alpha.20260830
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
