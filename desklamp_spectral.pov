@@ -1,4 +1,4 @@
-/* desklamp_spectral.pov version 3.0-alpha.20260830
+/* desklamp_spectral.pov version 3.0-alpha.20260905
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -165,10 +165,8 @@ object
 { Lamp_Flexneck
   ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
     <0, HTABLE, RROOM - DTABLE + 0.5>, on, SpectralEmission (E_D50),
-    -Lamp_Spectral_Bright (Lamp_fn_Watts_to_Lumens (40), E_D50),
-    t_Red, Lamp_Bulb_A19,
-    C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
-    //rgb 1, Soft, off, <Quality, 0>
+    Lamp_Spectral_Bright (-Lamp_fn_Watts_to_Lumens (40), E_D50, D_CC_D3),
+    t_Red, Lamp_Bulb_A19, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
@@ -197,9 +195,8 @@ object
 { Lamp_Flexneck
   ( 45, <0.25, HTABLE, RROOM - 0.9>, y,
     <0, HTABLE, RROOM - 2, -20>, off, SpectralEmission (E_D50),
-    -Lamp_Spectral_Bright (450, E_D50),
-    t_Green, Lamp_Bulb_A60,
-    C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
+    Lamp_Spectral_Bright (-450, E_D50, D_CC_D3),
+    t_Green, Lamp_Bulb_A60, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
@@ -220,9 +217,8 @@ object
 { Lamp_Flexneck_Rectangular
   ( 45, 12.5, <1, HTABLE, RROOM - DTABLE + 1>, y,
     <0, HTABLE, RROOM - DTABLE + 1, -15>, 1, SpectralEmission (E_D93),
-    Lamp_Spectral_Bright (200, E_D93),
-    2, t_Blue,
-    rgb 1, 10, Soft, off, 1
+    Lamp_Spectral_Bright (200, E_D93, Value_1),
+    2, t_Blue, rgb 1, 10, Soft, off, 1
   )
   interior { i_Gloss }
 }

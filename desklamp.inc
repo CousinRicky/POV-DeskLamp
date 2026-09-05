@@ -1,5 +1,4 @@
-/* desklamp.inc version 3.0-alpha.20260830
- * Persistence of Vision Raytracer include file
+/* desklamp.inc version 3.0-alpha.20260905
  * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
@@ -42,7 +41,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260830"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260905"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat

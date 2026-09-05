@@ -1,4 +1,4 @@
-/* desklamp_spectral.inc version 3.0-alpha.20260830
+/* desklamp_spectral.inc version 3.0-alpha.20260905
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
@@ -27,7 +27,12 @@
  */
 /* This file references the following identifiers that are defined by libraries
  * Lightsys IV or SpectralRender, which are not in the Object Collection:
+ *   C_Average
+ *   C_Spectral
  *   CMF_xyz
+ *   D_CC_A4
+ *   D_CC_B4
+ *   D_CC_F4
  *   EXT_Metal
  *   IOR_K_Iron
  *   IOR_Metal
@@ -36,6 +41,7 @@
  *   SpectralMode
  *   WavelengthFromIndex
  *   WavelengthIndex
+ *   Value_0
  *   xyz2xyY
  *   @@ MORE TO COME
  */
@@ -67,6 +73,13 @@
     "; desklamp_spectral.inc v", Lamp__Version_s (DESKLAMP__SPECTRAL_VERSION, "")
   )
 #end
+
+//----------------------------------------------------------
+
+#declare Lamp_c_Padding = C_Spectral (D_CC_F4);
+#declare Lamp_c_Switch_Neg = C_Average (D_CC_F4, 1, Value_0, 1);
+#declare Lamp_c_Switch_Pos = C_Average (D_CC_A4, 2, D_CC_B4, 1);
+
 
 //----------------------------------------------------------
 
@@ -105,31 +118,43 @@
   }
 #end
 
-//----------------------------------------------------------
+//====================================================================
 
 #if (SpectralMode)
 
   //@@ #declare Lamp_c_Weights = rgb 1/3;
 
-  #macro Lamp_SRLuminance (srColor)
+  #macro Lamp_SRLuminance (sr_Color)
   ( #local lamp_Acc = <0, 0, 0>;
     #for (lamp_I, 0, 35)
-      #local lamp_Acc = lamp_Acc + CMF_xyz (WavelengthFromIndex (lamp_I)) * srColor [lamp_I];
+      #local lamp_Acc = lamp_Acc + CMF_xyz (WavelengthFromIndex (lamp_I)) * sr_Color [lamp_I];
     #end
     // 10 is the band resolution in nm; / 100 is for unit conversion:
     (xyz2xyY (lamp_Acc * 10 / 100)).z
   )
   #end
 
-//----------------------------------------------------------
+  //--------------------------------------------------------
 
-  #macro Lamp_Spectral_Bright (Brightness, srColor)
-    ( Brightness * srColor [WavelengthIndex] / Lamp_SRLuminance (srColor) )
+  #macro Lamp_Spectral_Bright (Brightness, sr_Light, sr_Filter)
+  ( #if (Brightness < 0)
+      Brightness * sr_Light [WavelengthIndex] / Lamp_SRLuminance (sr_Light)
+    #else
+      -Brightness * sr_Light [WavelengthIndex]
+      / (Lamp_SRLuminance (sr_Light) * Lamp_SRLuminance (sr_Filter))
+    #end
+  )
   #end
 
-#else //----------------------------------------------------
+#else //==============================================================
 
-  #macro Lamp_Spectral_Bright (Brightness, srColor)
+  #macro Lamp_SRLuminance (sr_Color)
+    Lamp_Luminance (sr_Color)
+  #end
+
+  //--------------------------------------------------------
+
+  #macro Lamp_Spectral_Bright (Brightness, sr_Light, sr_Filter)
     Brightness
   #end
 
