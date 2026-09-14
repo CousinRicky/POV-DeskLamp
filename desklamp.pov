@@ -212,6 +212,7 @@ object
   )
   interior { i_Gloss }
 }
+
 //======================= ROOM & TABLE =========================
 
 box

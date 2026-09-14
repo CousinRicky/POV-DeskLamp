@@ -1,4 +1,4 @@
-/* desklamp.inc version 3.0-alpha.20260905
+/* desklamp.inc version 3.0-alpha.20260913  2026-Sep-13
  * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
@@ -41,7 +41,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260905"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260913"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1143,15 +1143,15 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
     }
     cylinder // connecting rod
     { -y, LAMP__DIAL_GAP * y, 1/8
-      /*texture
-      { pigment { rgb Lamp_c_Metal }
+      /**/texture
+      { pigment { color Lamp_c_Metal }
         finish
         { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP)
           reflection { 0.9 metallic }
           #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
         }
-      }*/
-      Lamp_Metal_m (LAMP__DIAL_GAP) // occlusion is essentially the sine of the gap:radius
+      }
+      Lamp_Metal_m (LAMP__DIAL_GAP) // occlusion is essentially the sine of gap:radius
     }
     scale LAMP_INCH / 2
   }
@@ -1345,15 +1345,15 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
  // an A19 bulb.
   #local lamp_t_Exterior = texture { finish { Lamp_Finish_Base (1, 1) } }
   #local lamp_t_Hood_hardware = texture
-  { pigment { rgb Lamp_c_Hardware }
+  { pigment { color Lamp_c_Hardware }
     finish
     { Lamp_Lit_Finish (0.5, 0.5, lamp_Rad * 0.12)
       brilliance 5/3
       specular 1.59 metallic roughness 0.01
     }
   }
-  /**/#local lamp_t_Metal = texture
-  { pigment { rgb Lamp_c_Metal }
+  /*@@*/#local lamp_t_Metal = texture
+  { pigment { color Lamp_c_Metal }
     #if (mod (lamp_v_Flags.x, 2) = 1)
       finish
       { Lamp_Finish_Base (0.05, 1)
@@ -1373,7 +1373,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
   #else // e.g., for radiosity pass 1
     #local lamp_m_Metal = material
     { texture
-      { pigment { rgb Lamp_c_Metal }
+      { pigment { color Lamp_c_Metal }
         finish
         { Lamp_Finish_Base (0.5, 1)
           brilliance 5/3
@@ -1815,7 +1815,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
 //----------------------------------------------------------
 
 #macro Lamp_Metal_m (Occlusion)
-  material { texture { Lamp_Metal_t (Occlusion) } }
+  material { Lamp_Metal_t (Occlusion) }
 #end
 
 //----------------------------------------------------------

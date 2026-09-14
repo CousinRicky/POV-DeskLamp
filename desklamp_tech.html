@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 3.0-alpha Technical Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-alpha.20260913 Technical Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 3.0-alpha Technical&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-alpha.20260913 Technical&nbsp;Manual</h1>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
@@ -39,14 +39,14 @@ Ordinarily, you will not need to use these tools, but they may be used for const
       <li><a href="#Lamp_Lighting_Flat">Lamp_Lighting_Flat</a>
       <li><a href="#Lamp_Lit_Finish">Lamp_Lit_Finish</a>
       <li><a href="#Lamp_Luminance">Lamp_Luminance</a>
+      <li><a href="#Lamp_Metal_m">Lamp_Metal_m</a>
+      <li><a href="#Lamp_Metal_t">Lamp_Metal_t</a>
      </ul>
    </ul>
   </td> <td>
    <ul>
     <li>Lamp construction tools, continued
      <ul>
-      <li><a href="#Lamp_Metal_m">Lamp_Metal_m</a>
-      <li><a href="#Lamp_Metal_t">Lamp_Metal_t</a>
       <li><a href="#Lamp_Orient_Trans">Lamp_Orient_Trans</a>
       <li><a href="#Lamp_Panel_Material">Lamp_Panel_Material</a>
       <li><a href="#Lamp_Rotation_Trans">Lamp_Rotation_Trans</a>
@@ -57,6 +57,12 @@ Ordinarily, you will not need to use these tools, but they may be used for const
       <li><a href="#Lamp_fn_Area_Adjust">Lamp_fn_Area_Adjust</a>
       <li><a href="#Lamp_fn_Coil_Normal">Lamp_fn_Coil_Normal</a>
       <li><a href="#Lamp_fn_Isocoil">Lamp_fn_Isocoil</a>
+     </ul>
+    <li><a href="#Spectral">Spectral rendering</a>
+     <ul>
+      <li><a href="#Lamp_SRLuminance">Lamp_SRLuminance</a>
+      <li><a href="#Lamp_SRMetal_t">Lamp_SRMetal_t</a>
+      <li><a href="#Parameters">Global parameters</a>
      </ul>
     <li><a href="#Bulb_design">Creating your own light bulb object</a>
     <li><a href="#Other_identifiers">Other identifiers</a>
@@ -265,7 +271,7 @@ This macro should be called from within a <code>finish</code> block, and is not 
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
    or a smaller value for a darker ambient.
   </td>
  </tr>
@@ -590,7 +596,7 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
    or a smaller value for a darker ambient.
   </td>
  </tr><tr>
@@ -631,7 +637,7 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
    a smaller value for a darker ambient; or 0 for no ambient.
   </td>
  </tr>
@@ -651,7 +657,7 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument;
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
    a smaller value for a darker ambient; or 0 for no ambient.
   </td>
  </tr>
@@ -1020,6 +1026,82 @@ The default isosurface threshold and polarity are assumed.
 
 <p><a href="#toc">Table of contents</a><hr>
 
+<h2 id="Spectral">Spectral Rendering</h2>
+
+<h3 id="Lamp_SRLuminance">Macro Lamp_SRLuminance (sr_Color)</h3>
+
+<p>Returns the luminance of a SpectralRender color.
+<code>Lamp_SRLuminance()</code> must be used in lieu of <code>Lamp_Luminance()</code> when using SpectralRender.
+
+<p>File <code>desklamp_spectral.inc</code> must be included in order to use this macro.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>sr_Filter</code></td>
+  <td>SpectralRender color</td>
+  <td>A color or macro prefixed with ‘<code>D_</code>’ or ‘<code>E_</code>’.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_SRMetal_t">Macro Lamp_SRMetal_t (Occlusion, N, K, Reflectance)</h3>
+
+<p>Returns a spectral metallic texture.
+This macro should be used in a <code>material</code> with <code>interior { IOR_Metal (N, K) }</code>.
+
+<p>File <code>desklamp_spectral.inc</code> must be included in order to use this macro.
+
+<h4>Argument</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Occlusion</code></td>
+  <td>float</td>
+  <td>An ambient multiplier.
+   Use 1.0 for an ambient synchronized with the <code>Reflectance</code> argument;
+   or a smaller value for a darker ambient.
+   Use 0 for no ambient.
+  </td>
+ </tr><tr>
+  <td><code>N</code></td>
+  <td>array[36] of float</td>
+  <td>Refraction data by wavelength.</td>
+ </tr><tr>
+  <td><code>K</code></td>
+  <td>array[36] of float</td>
+  <td>Extinction data by wavelength.</td>
+ </tr><tr>
+  <td><code>Reflectance</code></td>
+  <td>float</td>
+  <td>A proxy for blurred reflection. Use 1.0 for a polished surface.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Parameters">Global Parameters and Macros</h3>
+
+<p>The following global parameters and macros are overwritten by including file <code>desklamp_spectral.inc</code>.
+If you wish to substitute your own, you must do so <em>after</em> including <code>desklamp_spectral.inc</code>.
+
+<ul>
+ <li><code>Lamp_c_Hardware</code>
+ <li><code>Lamp_c_Metal</code>
+ <li><code>Lamp_c_Padding</code>
+ <li><code>Lamp_c_Switch_Neg</code>
+ <li><code>Lamp_c_Switch_Pos</code>
+ <li><code>Lamp_i_Metal</code>
+ <li><code>Lamp_Metal_m()</code>
+ <li><code>Lamp_Metal_t()</code>
+</ul>
+
+<p><a href="#toc">Table of contents</a><hr>
+
 <h2 id="Bulb_design">Creating Your Own Light Bulb Object</h2>
 
 <p>The light bulb object should be upright and scaled in centimeters.
@@ -1031,6 +1113,8 @@ then the end of the bulb will be flush with the mouth of the hood of
 
 <p>DeskLamp uses the bounding box of the bulb to compute the light source position and the area light.
 If the bulb is complex or uses a <code>sphere_sweep</code>, intersecting it with a bounding object may be advisable.
+Note that <a href="https://news.povray.org/517e621e%40news.povray.org">manual bounding may be ineffective</a>,
+hence the recommendation to use an intersection.
 
 <p>For DeskLamp to apply an automatic surface glow, any glowing part of the bulb <em>must be untextured.</em>
 If modeling a compact fluorescent bulb, the ballast (not including the base) should be above the origin and should have a texture.

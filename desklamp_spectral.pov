@@ -1,4 +1,4 @@
-/* desklamp_spectral.pov version 3.0-alpha.20260905
+/* desklamp_spectral.pov version 3.0-alpha.20260913  2026-Sep-13
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -35,11 +35,11 @@
 // Pass 1:
 //   +W1600 +H1200 +A +AM1 +R3 +FE +KI1 +KF36 +KFI38 +KFF73
 // Pass 2:
-//   +W800 +H600 +A -J +AM1 +R2
+//   +W1600 +H1200
 // Before running pass 2, make sure ALL of the #declare FName lines in
 // SpectralComposer.pov are commented out.
 //
-// After running pass 2, you may delete the integratelight_scene??.exr files.
+// After running pass 2, you may delete the desklamp_spectral??.exr files.
 #version max (3.7, min (3.8, version));
 
 #ifndef (Preview) #declare Preview = no; #end
@@ -63,13 +63,18 @@
 #declare Lamp_Lumen = 0.01;//0.005;//
 #declare Lamp_Max_Sample = 15;
 #declare Lamp_Diffuse = 1;
-//#declare Lamp_c_Ambient = rgb (Lamp_Radiosity? 0: <8.8, 7.2, 6.4> * Lamp_Lumen); //@@ RECALCULATE THE AMBIENT!
-#declare Lamp_c_Ambient = rgb 0;
+#if (Lamp_Radiosity)
+  #declare Lamp_c_Ambient = rgb 0;
+#else
+  #declare d_Ambient = D_RGB (21.3, 13.4, 2.9);
+  #declare LD65 = Lamp_SRLuminance (E_D65); // to normalize on luminance
+  #declare Lamp_c_Ambient = SpectralEmission (Lamp_SRFilter (d_Ambient, E_D65, Lamp_Lumen / LD65));
+#end
 #declare RAD_REGULAR = 400;//500;
 #declare RAD_IMPORTANT = 2000;//10000;
 #default
 { finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse }
-  radiosity { importance RAD_REGULAR / RAD_IMPORTANT }
+  //radiosity { importance RAD_REGULAR / RAD_IMPORTANT }
 }
 
 global_settings
@@ -110,7 +115,7 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 1 fresnel } conserve_energy
-    specular albedo 1 roughness 0.001
+    specular albedo 0.0486 roughness 0.001
   }
 }
 
@@ -118,11 +123,10 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 0.25 fresnel } conserve_energy
-    specular albedo 0.25 roughness 0.01
+    specular albedo 0.0121 roughness 0.01
   }
 }
 
-//#declare i_Gloss = interior { ior 1.49 } //@@ IOR_Acryl
 #declare i_Gloss = interior { IOR_Spectral (IOR_Acryl) }
 
 //======================== THE LAMPS ===========================
@@ -165,7 +169,7 @@ object
 { Lamp_Flexneck
   ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
     <0, HTABLE, RROOM - DTABLE + 0.5>, on, SpectralEmission (E_D50),
-    Lamp_Spectral_Bright (-Lamp_fn_Watts_to_Lumens (40), E_D50, D_CC_D3),
+    Lamp_SRBrightness (-Lamp_fn_Watts_to_Lumens (40), E_D50, D_CC_D3),
     t_Red, Lamp_Bulb_A19, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
@@ -195,7 +199,7 @@ object
 { Lamp_Flexneck
   ( 45, <0.25, HTABLE, RROOM - 0.9>, y,
     <0, HTABLE, RROOM - 2, -20>, off, SpectralEmission (E_D50),
-    Lamp_Spectral_Bright (-450, E_D50, D_CC_D3),
+    Lamp_SRBrightness (-450, E_D50, D_CC_D3),
     t_Green, Lamp_Bulb_A60, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
@@ -217,11 +221,12 @@ object
 { Lamp_Flexneck_Rectangular
   ( 45, 12.5, <1, HTABLE, RROOM - DTABLE + 1>, y,
     <0, HTABLE, RROOM - DTABLE + 1, -15>, 1, SpectralEmission (E_D93),
-    Lamp_Spectral_Bright (200, E_D93, Value_1),
+    Lamp_SRBrightness (200, E_D93, Value_1),
     2, t_Blue, rgb 1, 10, Soft, off, 1
   )
   interior { i_Gloss }
 }
+
 //======================= ROOM & TABLE =========================
 
 box
