@@ -1,4 +1,4 @@
-/* desklamp_spectral.inc version 3.0-alpha.20260913  2026-Sep-13
+/* desklamp_spectral.inc version 3.0-alpha.20260918  2026-Sep-18
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
@@ -29,6 +29,7 @@
  * Lightsys IV or SpectralRender, which are not in the Object Collection:
  *   C_Average
  *   C_Metal
+ *   C_RGB
  *   C_Spectral
  *   CMF_xyz
  *   D_CC_A4
@@ -44,7 +45,6 @@
  *   WavelengthIndex
  *   Value_0
  *   xyz2xyY
- *   @@ MORE TO COME
  */
 #ifndef (DeskLamp_Spectral_Inc_Temp) #declare DeskLamp_Spectral_Inc_Temp = version;
 #version max (3.7, min (3.8, version)); // Minimum POV version is 3.7.
@@ -70,7 +70,7 @@
 #include "desklamp.inc"
 #if (DESKLAMP__SPECTRAL_VERSION != DESKLAMP_VERSION)
   #error concat
-  ( "DeskLamp version mismatch: desklamp.inc v", DESKLAMP__S_VSUFFIX,
+  ( "DeskLamp version mismatch: desklamp.inc v", lamp__s_Version,
     "; desklamp_spectral.inc v", Lamp__Version_s (DESKLAMP__SPECTRAL_VERSION, "")
   )
 #end
@@ -78,7 +78,7 @@
 //----------------------------------------------------------
 
 #declare Lamp_c_Hardware = C_RGB (0.756, 0.873, 0.773);
-#declare Lamp_c_Metal = C_RGB (0.793, 0.752, 0.579);
+#declare Lamp_c_Metal = C_Metal (IOR_N_Iron, IOR_K_Iron);
 #declare Lamp_c_Padding = C_Spectral (D_CC_F4);
 #declare Lamp_c_Switch_Neg = C_Average (D_CC_F4, 1, Value_0, 1);
 #declare Lamp_c_Switch_Pos = C_Average (D_CC_A4, 2, D_CC_B4, 1);
@@ -127,8 +127,6 @@
 
 #if (SpectralMode)
 
-  //@@ #declare Lamp_c_Weights = rgb 1/3;
-
   #macro Lamp_SRBrightness (Brightness, sr_Light, sr_Filter)
   ( #if (Brightness < 0)
       Brightness * sr_Light [WavelengthIndex] / Lamp_SRLuminance (sr_Light)
@@ -160,6 +158,8 @@
     (xyz2xyY (lamp_Acc * 10 / 100)).z
   )
   #end
+
+  #declare Lamp_c_Weights = rgb 1/3; // probably irrelevant or useless
 
 #else //==================== PREVIEW MODE ============================
 

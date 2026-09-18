@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 3.0-alpha.20260913 Technical Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-alpha.20260918 Technical Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 3.0-alpha.20260913 Technical&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-alpha.20260918 Technical&nbsp;Manual</h1>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
@@ -249,7 +249,7 @@ It is 1.27 units in diameter, with 3 coils per unit along its length.
 
 <h3 id="Lamp_Dimmer">Macro Lamp_Dimmer()</h3>
 
-<p>A knurled rotary dial light switch with a surrounding rim and a plastic-looking black texture.
+<p>A knurled rotary dial light switch with a surrounding rim and a plastic-looking texture, colors determined by <a href="#Textures">global parameters</a> <code>Lamp_c_Switch_Neg</code> and <code>Lamp_c_Switch_Pos</code>.
 It is oriented horizontally and points in the +<var>z</var> direction.
 
 <p><a href="#toc">Table of contents</a><hr>
@@ -627,7 +627,7 @@ This macro should be called from within a <code>finish</code> block.
 
 <h3 id="Lamp_Metal_m">Macro Lamp_Metal_m (Occlusion)</h3>
 
-<p>Returns a basic steel material.
+<p>Returns a basic metallic material, color determined by <a href="#Textures">global parameter</a> <code>Lamp_c_Metal</code>.
 
 <h4>Argument</h4>
 <table>
@@ -647,7 +647,7 @@ This macro should be called from within a <code>finish</code> block.
 
 <h3 id="Lamp_Metal_t">Macro Lamp_Metal_t (Occlusion)</h3>
 
-<p>Returns a basic steel texture.
+<p>Returns a basic metallic texture, color determined by <a href="#Textures">global parameter</a> <code>Lamp_c_Metal</code>.
 
 <h4>Argument</h4>
 <table>
@@ -751,7 +751,11 @@ then <code>global_settings { ambient_light }</code> must remain at its default s
  </tr><tr>
   <td><code>Tightness</code></td>
   <td>float</td>
-  <td>How rapidly the light intensity falls off as one moves to the side of the panel.
+  <td>How rapidly the surface brightness appearance falls off as one moves to the side of the panel.
+   Realistic values are 1.0 and greater.
+   A value of 1.0 yields a brightness that is independent of viewing angle.
+   Higher values yield more directional effects.
+   Values less than 1 yield a brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
   </td>
  </tr>
@@ -957,7 +961,8 @@ and optionally, a simplified lamp fixture hood, is written to the debug stream.
 <h3 id="Lamp_Switch">Macro Lamp_Switch (State)</h3>
 
 <p>A light switch.
-The switch is rocker-style with a superellipse footprint, a surrounding rim, and a plastic-looking black texture.
+The switch is rocker-style with a superellipse footprint, a surrounding rim, and a plastic-looking texture,
+colors determined by <a href="#Textures">global parameters</a> <code>Lamp_c_Switch_Neg</code> and <code>Lamp_c_Switch_Pos</code>.
 It is oriented horizontally and toggles in the <var>z</var>-direction.
 The top of the rim is slightly above the <var>x</var>-<var>z</var> plane.
 
@@ -988,7 +993,7 @@ Each warning will be issued only once, regardless of how many lamps are instanti
 
 <p>Returns an adjustment to the physical size of an area light, based on the sampling resolution.
 Use this for the length of the area light vectors. See
-<a href="https://news.povray.org/57efd170%40news.povray.org">Area light idiosyncrasies</a>
+<a href="https://news.povray.org/57efd170%40news.povray.org" target="_blank">Area light idiosyncrasies</a>
 in povray.binaries.images for the rationale for this function.
 
 <h4>Argument</h4>
@@ -1051,7 +1056,7 @@ The default isosurface threshold and polarity are assumed.
 <h3 id="Lamp_SRMetal_t">Macro Lamp_SRMetal_t (Occlusion, N, K, Reflectance)</h3>
 
 <p>Returns a spectral metallic texture.
-This macro should be used in a <code>material</code> with <code>interior { IOR_Metal (N, K) }</code>.
+This macro should be used with <code>interior { IOR_Metal (N, K) }</code>.
 
 <p>File <code>desklamp_spectral.inc</code> must be included in order to use this macro.
 
@@ -1113,7 +1118,7 @@ then the end of the bulb will be flush with the mouth of the hood of
 
 <p>DeskLamp uses the bounding box of the bulb to compute the light source position and the area light.
 If the bulb is complex or uses a <code>sphere_sweep</code>, intersecting it with a bounding object may be advisable.
-Note that <a href="https://news.povray.org/517e621e%40news.povray.org">manual bounding may be ineffective</a>,
+Note that <a href="https://news.povray.org/517e621e%40news.povray.org" target="_blank">manual bounding may be ineffective</a>,
 hence the recommendation to use an intersection.
 
 <p>For DeskLamp to apply an automatic surface glow, any glowing part of the bulb <em>must be untextured.</em>
@@ -1150,9 +1155,12 @@ so I just used the Wikipedia figure as a compromise and subtracted 24 mm for the
 <h3 id="Textures">Implicit Texture-Related Parameters</h3>
 
 <p>These values may be changed by the user at any time.
+The colors are used with <code>diffuse 1.0</code> and are intended for use with <code>assumed_gamma 1.0</code>.
 
-<!-- The color values below are linear; background -->
-<!-- styles are sRGB encoded for CSS compliance.   -->
+<!--
+Note: Although the color values below are linear, the
+background styles are sRGB encoded for CSS compliance.
+-->
 <table>
  <tr><th>Identifier</th> <th>Type</th> <th>Description</th> <th>Default</th></tr>
  <tr>

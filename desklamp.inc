@@ -1,4 +1,5 @@
-/* desklamp.inc version 3.0-alpha.20260913  2026-Sep-13
+/* desklamp.inc version 3.0-alpha.20260918  2026-Sep-18
+ * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
@@ -33,7 +34,7 @@
  *                     inverse square attenuation.
  *        2026-Feb-16  The license is upgraded to LGPL 3.
  * 2.0.2  2026-Jun-29  Bug fix: interior hood illumination is corrected for colored bulbs.
- * 3.0    20??-???-??  Implied textures (switches, metals, etc.) can be modified.
+ * 3.0    2026-Sep-18  Implied textures (switches, metals, etc.) can be modified.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.
@@ -41,7 +42,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260913"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260918"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1143,14 +1144,6 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
     }
     cylinder // connecting rod
     { -y, LAMP__DIAL_GAP * y, 1/8
-      /**/texture
-      { pigment { color Lamp_c_Metal }
-        finish
-        { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP)
-          reflection { 0.9 metallic }
-          #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
-        }
-      }
       Lamp_Metal_m (LAMP__DIAL_GAP) // occlusion is essentially the sine of gap:radius
     }
     scale LAMP_INCH / 2
@@ -1336,13 +1329,11 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
   // Halve the surface brightnesses of the bulb and hood interior for 3.5/3.6,
   // since radiosity cannot be suppressed in these versions.
   // In practice, the halved luminance won't be noticed in non-HDRI renders.
-  #local lamp_Rad36 =
-    (Lamp_Radiosity & lamp_IsLit & version < 3.7 & !lamp__Dbg_hood_ctrl? 0.5: 1);
+  #local lamp_Rad36 = (Lamp_Radiosity & lamp_IsLit & version < 3.7 & !lamp__Dbg_hood_ctrl? 0.5: 1);
 
  // Textures
- // Note: the Occlusion and c_Glow arguments passed to Lamp_Lit_Finish() from
- // this macro were determined by visual inspection of radiosity renders with
- // an A19 bulb.
+ // Note: the Occlusion and c_Glow arguments passed to Lamp_Lit_Finish() from this macro were
+ // determined by visual inspection of radiosity renders with an A19 bulb.
   #local lamp_t_Exterior = texture { finish { Lamp_Finish_Base (1, 1) } }
   #local lamp_t_Hood_hardware = texture
   { pigment { color Lamp_c_Hardware }
@@ -1352,35 +1343,19 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
       specular 1.59 metallic roughness 0.01
     }
   }
-  /*@@*/#local lamp_t_Metal = texture
-  { pigment { color Lamp_c_Metal }
-    #if (mod (lamp_v_Flags.x, 2) = 1)
-      finish
-      { Lamp_Finish_Base (0.05, 1)
-        reflection { 0.9 metallic }
-        #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
-      }
-    #else // e.g., for radiosity pass 1
+  #if (mod (lamp_v_Flags.x, 2) = 1)
+    #local lamp_t_Metal = Lamp_Metal_t (1)
+    #local lamp_m_Metal = Lamp_Metal_m (1)
+  #else // e.g., for radiosity pass 1
+    #local lamp_t_Metal = texture
+    { pigment { color Lamp_c_Metal }
       finish
       { Lamp_Finish_Base (0.5, 1)
         brilliance 5/3
         specular 1.59 metallic roughness 0.01
       }
-    #end
-  }
-  #if (mod (lamp_v_Flags.x, 2) = 1)
-    #local lamp_m_Metal = Lamp_Metal_m (1)
-  #else // e.g., for radiosity pass 1
-    #local lamp_m_Metal = material
-    { texture
-      { pigment { color Lamp_c_Metal }
-        finish
-        { Lamp_Finish_Base (0.5, 1)
-          brilliance 5/3
-          specular 1.59 metallic roughness 0.01
-        }
-      }
     }
+    #local lamp_m_Metal = material { texture { lamp_t_Metal } }
   #end
 
  // Vary the interior ambients to give the impression of radiosity.
@@ -1432,8 +1407,8 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
         translate (LAMP__DHOOD - LAMP_HBULB) * z
         texture { lamp_t_Hood_hardware }
       }
-      // An area light is required to illuminate the outside of the
-      // socket.  Although area_light only works in areas of cast shadow,
+      // An area light is required to illuminate the outside of the socket.
+      // Although area_light only works in areas of cast shadow,
       // double_illuminate has the effect of forcing self-shadowing.
       double_illuminate
     }
@@ -1540,7 +1515,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
       object // top of neck
       { RE_Cylinder (0, -LAMP__HTOP * y, LAMP_RSTEM, 0.04, no)
         translate (lamp_Flatten - LAMP__R1HOOD) * y
-        texture { lamp_t_Metal }
+        material { lamp_m_Metal }
       }
       transform { lamp_x_Light }
     } // hood assembly
@@ -1554,6 +1529,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
         #else
           Lamp_Coil_Normal (lamp_lFlex, lamp_Flexd, lamp_t_Metal)
         #end
+        interior { Lamp_i_Metal }
         translate <0, LAMP_HBASE + lamp_hBottom, LAMP_ZOFS>
       }
       union // rigid stem at the bottom of the neck
@@ -1564,7 +1540,7 @@ rgb <0.485, 0.470, 0.455> = hsv <30.000, 0.062, 0.485> = #B9B6B4
           translate LAMP_INCH / 16 * y
         }
         translate <0, LAMP_HBASE, LAMP_ZOFS>
-        texture { lamp_t_Metal }
+        material { lamp_m_Metal }
       }
       object // switch
       { #if (lamp_v_Flags.y)

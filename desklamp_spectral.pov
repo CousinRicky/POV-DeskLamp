@@ -1,4 +1,4 @@
-/* desklamp_spectral.pov version 3.0-alpha.20260913  2026-Sep-13
+/* desklamp_spectral.pov version 3.0-alpha.20260918  2026-Sep-18
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -30,11 +30,15 @@
  * -----  ----         -----
  * 3.0    2026-???-??  Adapted from desklamp.pov
  */
-// Preview:
+// RGB preview:
 //   +W800 +H600 +A Declare=Preview=1
 // Pass 1:
-//   +W1600 +H1200 +A +AM1 +R3 +FE +KI1 +KF36 +KFI38 +KFF73
+//   +W800 +H600 +A +AM1 +R5 +FE +KI1 +KF36 +KFI38 +KFF73
 // Pass 2:
+//   +W800 +H600
+// Pass 1 (double size):
+//   +W1600 +H1200 +A +AM1 +R3 +FE +KI1 +KF36 +KFI38 +KFF73
+// Pass 2 (double size):
 //   +W1600 +H1200
 // Before running pass 2, make sure ALL of the #declare FName lines in
 // SpectralComposer.pov are commented out.
@@ -54,13 +58,12 @@
 // Draft = 1: low quality area light; spiral normal on flexible neck
 // Draft = 2: high quality area light; flexible neck is an actual spiral
 
-//#include "colors.inc"
 #include "desklamp.inc"
 #include "spectral.inc"
 #include "desklamp_spectral.inc"
 
 #declare Lamp_Scale = LAMP_FOOT;
-#declare Lamp_Lumen = 0.01;//0.005;//
+#declare Lamp_Lumen = 0.01;
 #declare Lamp_Max_Sample = 15;
 #declare Lamp_Diffuse = 1;
 #if (Lamp_Radiosity)
@@ -70,12 +73,8 @@
   #declare LD65 = Lamp_SRLuminance (E_D65); // to normalize on luminance
   #declare Lamp_c_Ambient = SpectralEmission (Lamp_SRFilter (d_Ambient, E_D65, Lamp_Lumen / LD65));
 #end
-#declare RAD_REGULAR = 400;//500;
-#declare RAD_IMPORTANT = 2000;//10000;
-#default
-{ finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse }
-  //radiosity { importance RAD_REGULAR / RAD_IMPORTANT }
-}
+#declare RAD_PRETRACE = (image_width > 1024? 4: 2);
+#default { finish { ambient Lamp_c_Ambient diffuse Lamp_Diffuse } }
 
 global_settings
 { assumed_gamma 1
@@ -84,12 +83,11 @@ global_settings
     radiosity
     { error_bound 0.5
       recursion_limit 2
-      //count RAD_IMPORTANT, RAD_IMPORTANT * 17
-      count 400, 6472
+      count 200, 3200
       max_sample Lamp_Max_Sample
       nearest_count 10
-      pretrace_end 2 / image_width
-      pretrace_start 64 / image_width
+      pretrace_end RAD_PRETRACE / image_width
+      pretrace_start RAD_PRETRACE * 32 / image_width
     }
   #end
 }
@@ -154,13 +152,13 @@ camera
     { plane { y, 0 }
       pigment
       { radial color_map
-        { [0.5 C_Spectral (D_CC_C3)]
-          [0.5 C_Spectral (D_CC_E3)]
+        { [0.5 C_Spectral (D_CC_C3)] // red
+          [0.5 C_Spectral (D_CC_E3)] // magenta
         }
         frequency 6
         rotate 15 * y
       }
-      pigment { C_Spectral (D_CC_C3) }
+      pigment { C_Spectral (D_CC_C3) } // red
     }
   }
 }
@@ -170,14 +168,16 @@ object
   ( HLAMP * LAMP_FOOT, <-1.15, HTABLE, RROOM - DTABLE + 1.3>, y,
     <0, HTABLE, RROOM - DTABLE + 0.5>, on, SpectralEmission (E_D50),
     Lamp_SRBrightness (-Lamp_fn_Watts_to_Lumens (40), E_D50, D_CC_D3),
-    t_Red, Lamp_Bulb_A19, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
+    t_Red, Lamp_Bulb_A19,
+    C_Spectral (D_CC_D3), // yellow
+    Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
-// Hooded lamp with international scaling, aim angle, colored
-// bulb, binary switch, & split texture; switched off:
-#declare c_SeaGreen = C_Average (D_CC_B3, 1, D_CC_F3, 1);
+// Hooded lamp with international scaling, aim angle, colored bulb,
+// binary switch, & split texture; switched off:
+#declare c_SeaGreen = C_Average (D_CC_B3, 1, D_CC_F3, 1); // green & teal
 #declare t_Green = texture
 { pigment
   { object
@@ -185,7 +185,7 @@ object
       pigment
       { radial color_map
         { [0.5 c_SeaGreen]
-          [0.5 C_Spectral (D_CC_E2)]
+          [0.5 C_Spectral (D_CC_E2)] // chartreuse
         }
         frequency 6
         rotate 15 * y
@@ -200,18 +200,20 @@ object
   ( 45, <0.25, HTABLE, RROOM - 0.9>, y,
     <0, HTABLE, RROOM - 2, -20>, off, SpectralEmission (E_D50),
     Lamp_SRBrightness (-450, E_D50, D_CC_D3),
-    t_Green, Lamp_Bulb_A60, C_Spectral (D_CC_D3), Soft, off, <Quality, 0>
+    t_Green, Lamp_Bulb_A60,
+    C_Spectral (D_CC_D3), // yellow
+    Soft, off, <Quality, 0>
   )
   interior { i_Gloss }
 }
 
 // Flat panel lamp with international scaling, aim angle,
-// white bulb, & dimmer dial:
+// white panel, & dimmer dial:
 #declare t_Blue = texture
 { pigment
   { radial color_map
-    { [0.5 C_Average (D_CC_F3, 2, D_CC_A3, 1)]
-      [0.5 C_Spectral (D_CC_A3)]
+    { [0.5 C_Average (D_CC_F3, 2, D_CC_A3, 1)] // teal & blue
+      [0.5 C_Spectral (D_CC_A3)] // blue
     }
     frequency 3
   }
@@ -323,7 +325,6 @@ union
   scale 1/12
   rotate 90 * x
   translate <0, HTABLE, RROOM - DTABLE + 1/12>
-  radiosity { importance sqrt (RAD_REGULAR / RAD_IMPORTANT) }
 }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%% ASSEMBLE THE FRAMES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

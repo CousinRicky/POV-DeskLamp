@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 3.0-alpha.20260913 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-alpha.20260918 User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 3.0-alpha.20260913 User&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-alpha.20260918 User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
@@ -65,7 +65,7 @@ Version 3.0 can be used with LILYsoft SpectralRender
       <li><a href="#SR-using">Using</a>
       <li><a href="#Lamp_SRBrightness">Lamp_SRBrightness</a>
       <li><a href="#Lamp_SRFilter">Lamp_SRFilter</a>
-      <!--li><a href="#Lamp_SRLuminance">Lamp_SRLuminance</a> tech manual! -->
+      <li><a href="#SRdemo">Spectral demo scene</a>
      </ul>
     <li><a href="#Other_identifiers">Other identifiers</a>
     <li><a href="#About">About DeskLamp</a>
@@ -175,11 +175,11 @@ Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.po
   demo scenes <code>desklamp_ls4.pov</code> and <code>desklamp_spectral.pov</code>.
  <dt><a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">LILYsoft SpectralRender</a>:
  <dd>Required by include file <code>desklamp_spectral.inc</code> and demo scene <code>desklamp_spectral.pov</code>.
- <dt><a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender add-on</a>:
+ <dt><a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender-mods add-on</a>:
  <dd>Used by demo scene <code>desklamp_spectral.pov</code> if available.
 </dl>
 
-<p>The DeskLamp library can be used without these.
+<p>The DeskLamp library can be used without these optional tools.
 
 <h3 id="Compliance">Namespace Compliance</h3>
 
@@ -668,7 +668,7 @@ The light fade power is fixed at 2.
   <td>float</td>
   <td><p>How rapidly the light intensity falls off as one moves to the side of the panel.
    Realistic values are 1.0 and greater.
-   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle.
+   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle, yielding a cosine falloff.
    Higher values yield more directional spotlights.
    Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
@@ -804,7 +804,7 @@ The light fade power is fixed at 2.
   <td>float</td>
   <td><p>How rapidly the light intensity falls off as one moves to the side of the panel.
    Realistic values are 1.0 and greater.
-   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle.
+   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle, yielding a cosine falloff.
    Higher values yield more directional spotlights.
    Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
@@ -1017,8 +1017,9 @@ for more information.
   for low color temperature white points (warm whites),
   or to render different scenes without having to edit the
   <code>SpectralComposer.pov</code> file each time, download this
-  <a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender add-on</a>
+  <a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender-mods add-on</a>
   and insure that it is in your library path.
+  See the <code>README.md</code> file included with the add-on for how to use it.
  <li><p>Include these two files in this order:
   <pre>#include "spectral.inc"
 #include "desklamp_spectral.inc"</pre>
@@ -1029,12 +1030,13 @@ for more information.
  <li><p>Some arguments to the lamp macros require special treatment:
   <ul>
    <li>The <code>Brightness</code> argument must first be passed to macro <code>Lamp_SRBrightness()</code>
-    along with the light source and bulb/panel colors in SpectralRender format.
+    along with the light source color and bulb or panel color.
    <li>The <code>c_Color</code> argument, being an emitted color,
     must use macro <code>SpectralEmission()</code> with a light color such as <code>E_D50</code>.
    <li>The <code>c_Bulb</code> and <code>c_Panel</code> arguments, being filters rather than emitted colors,
-    should use one of the SpectralRender macros prefixed with ‘<code>C_</code>’, such as <code>C_Spectral()</code> with a color prefixed with ‘<code>D_</code>’.
-    <code>C_Spectral (Value_1)</code> may also be used for a pure white bulb or panel.
+    should use one of the SpectralRender macros prefixed with ‘<code>C_</code>’,
+    such as <code>C_Spectral()</code> with a color prefixed with ‘<code>D_</code>’.
+    <code>rgb 1</code> may also be used for a pure white bulb or panel.
   </ul>
   <p>Example:
   <pre>Lamp_Flexneck
@@ -1049,11 +1051,16 @@ for more information.
 </pre>
 </ol>
 
+<p>See the <a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">SpectralRender user manual</a>
+for further instructions on how to use SpectralRender.
+
 <p><a href="#toc">Table of contents</a><hr>
 
 <h3 id="Lamp_SRBrightness">Macro Lamp_SRBrightness (Brightness, sr_Light, sr_Filter)</h3>
 
-<p>Each SpectralRender frame operates on a single wavelength, but the brightness of an entire spectral power distribution cannot be calculated from single wavelength. This macro provides the required context for this calculation.
+<p>Each SpectralRender frame operates on a single wavelength,
+but the brightness of an entire spectral power distribution cannot be calculated from single wavelength.
+This macro provides the required context for this calculation.
 
 <p>Use this macro for the <code>Brightness</code> argument for macros
 <code>Lamp_Flexneck()</code>, <code>Lamp_Flexneck_Rectangular()</code>,
@@ -1079,12 +1086,13 @@ and <code>Lamp_Lighting_Flat()</code>.
   <td>SpectralRender color</td>
   <td>The color of the light source, corresponding to the <code>c_Color</code> argument of the above-named macros.
    Any SpectralRender light prefixed with ‘<code>E_</code>’ may be used.
+   Do not use <code>Value_1</code> unless you want standard illuminant E.
   </td>
  </tr><tr>
   <td><code>sr_Filter</code></td>
   <td>SpectralRender color</td>
   <td>The color of the bulb or emitting panel, corresponding to the <code>c_Bulb</code> or <code>c_Panel</code> argument of the above-named macros.
-   Any SpectralRender color or macro prefixed with ‘<code>D_</code>’ may be used.
+   Any SpectralRender color or macro prefixed with ‘<code>D_</code>’ may be used; or <code>Value_1</code> may be used for pure white.
   </td>
  </tr>
 </table>
@@ -1114,6 +1122,29 @@ and <code>Lamp_Lighting_Flat()</code>.
   <td>An amount by which to brighten or dim the final color.</td>
  </tr>
 </table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="SRdemo">A Note about the Spectral Demo Scene</h3>
+
+<p>In the demo image <code>desklamp_spectral.jpg</code>,
+the yellow light bulb on the left appears darker that the lamp hood that it illuminates.
+This is because the bulb is a saturated color brighter than the dynamic range of the image format,
+with no blue channel to lighten the yellow,
+whereas the hood appears white due to being partially illuminated by the bluish-white lamp on the right.
+If pass 2 is rendered with an <code>Exposure</code> of 0.01,
+you can see that the bulb really is brighter than the hood.
+To change the exposure with standard SpectralRender,
+edit the <code>SpectralComposer.pov</code> file to change the <code>Exposure</code> declaration in  to <code>#declare Exposure = 0.01;</code>.
+To change the exposure using the SpectralRender-mods add-on,
+put <code>declare=Exposure=0.01</code> on the command line.
+
+<p>Due to the algorithm used by <code>SpectralComposer.pov</code>/<code>SpectralComposer.inc</code>,
+UberPOV glare desaturation (<code>+GLD</code>) will not work directly.
+To brighten the surfaces beyond the dynamic range,
+the image must first be rendered with low <code>Exposure</code>;
+then read into UberPOV as an image map;
+then rendered with a high <code>emission</code> finish (the reciprocal of the low <code>Exposure</code>) using glare desaturation.
 
 <p><a href="#toc">Table of contents</a><hr>
 
@@ -1185,7 +1216,7 @@ For example, if your scene’s unit is 1 hand, you would use:
   <td><code>DESKLAMP_VERSION</code></td>
   <td>float</td>
   <td>The DeskLamp version.</td>
-  <td>2.02</td>
+  <td>3.0</td>
  </tr>
 </table>
 
@@ -1210,6 +1241,7 @@ are considered “private” and are subject to change or elimination in a futur
 
 <p>In particular, the library author is not a color expert,
 so the accuracy of the lumens in spectral renders cannot be guaranteed.
+Any suggestions or corrections from color experts would be greatly appreciated.
 
 <h3 id="Categories">Object Collection Categories</h3>
 
@@ -1273,6 +1305,7 @@ so the accuracy of the lumens in spectral renders cannot be guaranteed.
   <td>
    <ul>
     <li>The library is completed and uploaded to GitHub.
+     Formal submission to the Object Collection is expected at a later date.
    </ul>
   </td>
  </tr><tr>
@@ -1293,7 +1326,7 @@ so the accuracy of the lumens in spectral renders cannot be guaranteed.
   <td>
    <ul>
     <li>Bug workaround: to avoid a bug with photons in POV-Ray 3.8 beta,
-     a parameter is added to turn off true power inverse square attenuation.
+     a parameter is added to disable true power inverse square attenuation.
    </ul>
   </td>
  </tr><tr>
@@ -1304,16 +1337,16 @@ so the accuracy of the lumens in spectral renders cannot be guaranteed.
     <li>The Lightsys IV URL is updated.
     <li>The license is upgraded to version 3 of the LGPL.
     <li>Bug fix: interior hood illumination is corrected for colored bulbs.
-    <!--li>The library is submitted to the POV-Ray Object Collection.-->
    </ul>
   </td>
  </tr><tr>
-  <td>3.0-alpha.20260913</td>
-  <td>As of 2026-Sep-13</td>
+  <td>3.0-alpha.20260918</td>
+  <td>As of 2026-Sep-18</td>
   <td>
    <ul>
     <li>Some implicit textures can be adjusted.
     <li>An add-on for LILYsoft SpectralRender is created.
+    <!--li>The library is submitted to the POV-Ray Object Collection.-->
    </ul>
   </td>
  </tr>
@@ -1342,7 +1375,7 @@ so the accuracy of the lumens in spectral renders cannot be guaranteed.
 
 <ul>
  <li>Alain Martel, for advice on POV-Ray 3.7’s radiosity “importance” feature.
- <li><a href="https://louisbel.free.fr/" target="_blank">Kurtz le pirate</a> for mathematical assistance.
+ <li><a href="https://louisbel.pages-perso.free.fr/" target="_blank">Kurtz le pirate</a> for mathematical assistance.
 </ul>
 
 <p><a href="#toc">Table of contents</a>

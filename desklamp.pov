@@ -1,4 +1,4 @@
-/* desklamp.pov version 3.0-alpha.20260830
+/* desklamp.pov version 3.0-alpha.20260918
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -106,8 +106,7 @@ camera
 { pigment { rgbf 1 }
   finish
   { reflection { 0.25 fresnel } conserve_energy
-    specular 0.155
-    roughness 0.01
+    specular 0.155 roughness 0.01
   }
 }
 
@@ -162,8 +161,8 @@ object
   interior { i_Gloss }
 }
 
-// Hooded lamp with international scaling, aim angle, colored
-// bulb, binary switch, & split texture; switched off:
+// Hooded lamp with international scaling, aim angle, colored bulb,
+// binary switch, & split texture; switched off:
 #declare t_Green = texture
 { pigment
   { object
@@ -191,8 +190,8 @@ object
   interior { i_Gloss }
 }
 
-// Flat panel lamp with international scaling, aim angle,
-// colored bulb, & dimmer dial:
+// Flat panel lamp with international scaling, aim angle, colored panel,
+// & dimmer dial:
 #declare t_Blue = texture
 { pigment
   { radial color_map
