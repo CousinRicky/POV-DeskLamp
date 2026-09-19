@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0.2-rc.1 Technical Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 2.0.2 Technical Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0.2-rc.1 Technical&nbsp;Manual</h1>
+<h1>DeskLamp 2.0.2 Technical&nbsp;Manual</h1>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
@@ -263,7 +263,8 @@ This macro should be called from within a <code>finish</code> block, and is not 
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument; or a smaller value for a darker ambient.
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
+   or a smaller value for a darker ambient.
   </td>
  </tr>
 </table>
@@ -347,7 +348,8 @@ If no such angle is possible, then a number greater than <var>&pi;</var> is retu
 
 <p>A flexible helical conduit, implemented as an isosurface.
 The object can be bent along a circular arc.
-The object in its unbent state is oriented vertically, with the bottom end at the origin.
+The object in its unbent state is oriented vertically,
+with the bottom end at the origin.
 It is 1.27 units in diameter, with 3 coils per unit along its length.
 
 <h4>Arguments</h4>
@@ -362,7 +364,8 @@ It is 1.27 units in diameter, with 3 coils per unit along its length.
   <td><code>Flex</code></td>
   <td>float</td>
   <td>The amount of bending, in degrees.
-   A positive value flexes in the <var>z</var> direction, and a negative value flexes in the &minus;<var>z</var> direction.
+   A positive value flexes in the <var>z</var> direction,
+   and a negative value flexes in the &minus;<var>z</var> direction.
    The allowable range is &minus;180 to 180.</td>
  </tr>
 </table>
@@ -585,7 +588,8 @@ This macro should be called from within a <code>finish</code> block.
   <td><code>Occlusion</code></td>
   <td>float</td>
   <td>An ambient multiplier.
-   Use 1 for an ambient synchronized with the <code>Diffuse</code> argument; or a smaller value for a darker ambient.
+   Use 1.0 for an ambient synchronized with the <code>Diffuse</code> argument;
+   or a smaller value for a darker ambient.
   </td>
  </tr><tr>
   <td><code>c_Glow</code></td>
@@ -699,7 +703,11 @@ then <code>global_settings { ambient_light }</code> must remain at its default s
  </tr><tr>
   <td><code>Tightness</code></td>
   <td>float</td>
-  <td>How rapidly the light intensity falls off as one moves to the side of the panel.
+  <td>How rapidly the surface brightness appearance falls off as one moves to the side of the panel.
+   Realistic values are 1.0 and greater.
+   A value of 1.0 yields a surface brightness that is independent of viewing angle.
+   Higher values yield more directional effects.
+   Values less than 1 yield a surface brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
   </td>
  </tr>
@@ -936,7 +944,7 @@ Each warning will be issued only once, regardless of how many lamps are instanti
 
 <p>Returns an adjustment to the physical size of an area light, based on the sampling resolution.
 Use this for the length of the area light vectors. See
-<a href="https://news.povray.org/57efd170%40news.povray.org">Area light idiosyncrasies</a>
+<a href="https://news.povray.org/57efd170%40news.povray.org" target="_blank">Area light idiosyncrasies</a>
 in povray.binaries.images for the rationale for this function.
 
 <h4>Argument</h4>
@@ -985,6 +993,8 @@ then the end of the bulb will be flush with the mouth of the hood of
 
 <p>DeskLamp uses the bounding box of the bulb to compute the light source position and the area light.
 If the bulb is complex or uses a <code>sphere_sweep</code>, intersecting it with a bounding object may be advisable.
+Note that <a href="https://news.povray.org/517e621e%40news.povray.org" target="_blank">manual bounding may be ineffective</a>,
+hence the recommendation to use an intersection.
 
 <p>For DeskLamp to apply an automatic surface glow, any glowing part of the bulb <em>must be untextured.</em>
 If modeling a compact fluorescent bulb, the ballast (not including the base) should be above the origin and should have a texture.

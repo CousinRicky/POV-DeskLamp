@@ -1,6 +1,6 @@
-/* desklamp.inc version 2.0.2-rc.1  2026-Jun-29
+/* desklamp.inc version 2.0.2  2026-Sep-19
  * Persistence of Vision Raytracer include file
- * A proposed POV-Ray Object Collection module
+ * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
  *
@@ -41,7 +41,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = "-rc.1"
+#declare DESKLAMP_VERSION = 2.02; #declare DESKLAMP__S_VSUFFIX = ""
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat
@@ -1130,7 +1130,7 @@
       texture
       { pigment { rgb <0.53, 0.51, 0.49> }
         finish
-        { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP)
+        { Lamp_Finish_Base (0.05, LAMP__DIAL_GAP) // occlusion is essentially the sine of gap:radius
           reflection { 0.9 metallic }
           #if (!Lamp_Reflect) specular 107 metallic roughness 0.001 #end
         }
@@ -1319,13 +1319,11 @@
   // Halve the surface brightnesses of the bulb and hood interior for 3.5/3.6,
   // since radiosity cannot be suppressed in these versions.
   // In practice, the halved luminance won't be noticed in non-HDRI renders.
-  #local lamp_Rad36 =
-    (Lamp_Radiosity & lamp_IsLit & version < 3.7 & !lamp__Dbg_hood_ctrl? 0.5: 1);
+  #local lamp_Rad36 = (Lamp_Radiosity & lamp_IsLit & version < 3.7 & !lamp__Dbg_hood_ctrl? 0.5: 1);
 
  // Textures
- // Note: the Occlusion and c_Glow arguments passed to Lamp_Lit_Finish() from
- // this macro were determined by visual inspection of radiosity renders with
- // an A19 bulb.
+ // Note: the Occlusion and c_Glow arguments passed to Lamp_Lit_Finish() from this macro were
+ // determined by visual inspection of radiosity renders with an A19 bulb.
   #local lamp_t_Exterior = texture { finish { Lamp_Finish_Base (1, 1) } }
   #local lamp_t_Hood_hardware = texture
   { pigment { rgb <0.53, 0.51, 0.49> }
@@ -1401,8 +1399,8 @@
         translate (LAMP__DHOOD - LAMP_HBULB) * z
         texture { lamp_t_Hood_hardware }
       }
-      // An area light is required to illuminate the outside of the
-      // socket.  Although area_light only works in areas of cast shadow,
+      // An area light is required to illuminate the outside of the socket.
+      // Although area_light only works in areas of cast shadow,
       // double_illuminate has the effect of forcing self-shadowing.
       double_illuminate
     }

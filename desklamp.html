@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0.2-rc.1 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 2.0.2 User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0.2-rc.1 User&nbsp;Manual</h1>
+<h1>DeskLamp 2.0.2 User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
 <p>
 <a href="desklamp.jpg" class="demo"><img src="desklamp_thumbnail.jpg" title="Larger demo image" alt="[Thumbnail which links to a larger demo image]"></a>
-DeskLamp is a library module from the
+DeskLamp is a library module proposed for the
 <a href="https://www.povray.org/">Persistence of Vision Raytracer (POV-Ray)</a>
-<a href="https://lib.povray.org/">Object Collection</a> that models several styles of desk lamp, each with a flexible neck and built-in light source.
-The color and brightness of the light are specified by the user, and realistic light fading (attenuation with distance) is used.
+<a href="https://lib.povray.org/">Object Collection</a> that models several styles of desk lamp,
+each with a flexible neck and built-in light source.
+The color and brightness of the light are specified by the user,
+and realistic light fading (attenuation with distance) is used.
 
 <p>A hooded lamp and two flat panel styles are defined.
 
@@ -169,7 +171,8 @@ or any identifiers that start with any of these prefixes plus an underscore.
 
 <p>The standard include files <code>functions.inc</code>, <code>math.inc</code>, and <code>transforms.inc</code> are used by <code>desklamp.inc</code>.
 In addition, RoundEdge uses  <code>shapes.inc</code>.
-The identifier <code>View_POV_Include_Stack</code> from the standard include file <code>debug.inc</code> is referenced by <code>desklamp.inc</code>, although <code>debug.inc</code> itself is not used.
+The identifier <code>View_POV_Include_Stack</code> from the standard include file <code>debug.inc</code> is referenced by <code>desklamp.inc</code>,
+although <code>debug.inc</code> itself is not used.
 
 <p>DeskLamp has two macros that interface with Lightsys IV.
 These macros reference certain Lightsys IV identifiers, prefixed with “<code>Lightsys_</code>,”
@@ -622,7 +625,7 @@ The light fade power is fixed at 2.
   <td>float</td>
   <td><p>How rapidly the light intensity falls off as one moves to the side of the panel.
    Realistic values are 1.0 and greater.
-   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle.
+   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle, yielding a cosine falloff.
    Higher values yield more directional spotlights.
    Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
@@ -758,7 +761,7 @@ The light fade power is fixed at 2.
   <td>float</td>
   <td><p>How rapidly the light intensity falls off as one moves to the side of the panel.
    Realistic values are 1.0 and greater.
-   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle.
+   A value of 1.0 corresponds to a panel surface brightness that is independent of viewing angle, yielding a cosine falloff.
    Higher values yield more directional spotlights.
    Values less than 1 yield a panel surface brightness that <em>increases</em> at shallower angles.
    Negative values will result in a parse error.
@@ -863,11 +866,11 @@ Output options such as <code>Display_Gamma</code> and <code>File_Gamma</code> sh
 global_settings { assumed_gamma 1 }
 object
 { MyObject1
-  pigment { Lamp_Color (MediumSpringGreen) } // colors.inc identifier
+  pigment { Lamp_Color (MediumSpringGreen) } <span class="comment">// colors.inc identifier</span>
 }
 object
 { MyObject2
-  pigment { Lamp_Color (&lt;255, 153, 51> / 255) } // from a color picker
+  pigment { Lamp_Color (&lt;255, 153, 51> / 255) } <span class="comment">// from a color picker</span>
 }</pre>
 
 <h4>Additional Notes</h4>
@@ -1101,6 +1104,7 @@ are considered “private” and are subject to change or elimination in a futur
   <td>
    <ul>
     <li>The library is completed and uploaded to GitHub.
+     Formal submission to the Object Collection is expected at a later date.
    </ul>
   </td>
  </tr><tr>
@@ -1121,12 +1125,12 @@ are considered “private” and are subject to change or elimination in a futur
   <td>
    <ul>
     <li>Bug workaround: to avoid a bug with photons in POV-Ray 3.8 beta,
-     a parameter is added to turn off true power inverse square attenuation.
+     a parameter is added to disable true power inverse square attenuation.
    </ul>
   </td>
  </tr><tr>
-  <td>2.0.2-rc.1</td>
-  <td>2026 June 29</td>
+  <td>2.0.2</td>
+  <td>2026 September 19</td>
   <td>
    <ul>
     <li>The Lightsys IV URL is updated.
@@ -1162,7 +1166,7 @@ are considered “private” and are subject to change or elimination in a futur
 
 <ul>
  <li>Alain Martel, for advice on POV-Ray 3.7’s radiosity “importance” feature.
- <li><a href="https://louisbel.free.fr/" target="_blank">Kurtz le pirate</a> for mathematical assistance.
+ <li><a href="https://louisbel.pages-perso.free.fr/" target="_blank">Kurtz le pirate</a> for mathematical assistance.
 </ul>
 
 <p><a href="#toc">Table of contents</a>
