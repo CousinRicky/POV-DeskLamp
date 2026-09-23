@@ -1,10 +1,10 @@
-/* desklamp.inc version 3.0-alpha.20260918  2026-Sep-18
+/* desklamp.inc version 3.0-beta.1  2026-Sep-23
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
  * Desk lamps with a built-in light source that can be aimed.
  *
- * Copyright (C) 2022 - 20?? Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2022 - 2026 Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
  *
  * This library is free software: you can redistribute it and/or modify it
@@ -42,7 +42,7 @@
 #ifndef (DeskLamp_Inc_Temp) #declare DeskLamp_Inc_Temp = version;
 #version max (3.5, min (3.8, version)); // Bracket the POV version.
 
-#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-alpha.20260918"
+#declare DESKLAMP_VERSION = 3.0; #declare DESKLAMP__S_VSUFFIX = "-beta.1"
 #macro Lamp__Version_s (VNum, Suffix)
   #local lamp_H = mod (VNum * 100, 10);
   concat

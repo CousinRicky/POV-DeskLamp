@@ -1,10 +1,10 @@
-/* desklamp_spectral.inc version 3.0-alpha.20260918  2026-Sep-18
+/* desklamp_spectral.inc version 3.0-beta.1  2026-Sep-23
  * Persistence of Vision Raytracer include file
  * A proposed POV-Ray Object Collection library
  *
  * An add-on to DeskLamp for rendering with LILYsoft SpectralRender.
  *
- * Copyright (C) 20?? Richard Callwood III.  Some rights reserved.
+ * Copyright (C) 2026 Richard Callwood III.  Some rights reserved.
  * This file is licensed under the terms of the GNU-LGPL
  *
  * This library is free software: you can redistribute it and/or modify it
@@ -20,7 +20,7 @@
  *
  * Vers.  Date         Notes
  * -----  ----         -----
- * 3.0    20??-???-??  Completed.
+ * 3.0    2026-Sep-18  Initial implementation is completed.
  *
  * Implementation note: due to POV-Ray namespace scope leakage, local variables
  * and function parameters (other than x, y, and z) *must* be prefixed.

@@ -1,4 +1,4 @@
-/* desklamp_spectral.pov version 3.0-alpha.20260918  2026-Sep-18
+/* desklamp_spectral.pov version 3.0-beta.1  2026-Sep-23
  * Persistence of Vision Raytracer scene description file
  * A proposed POV-Ray Object Collection demo
  *
@@ -28,7 +28,7 @@
  *
  * Vers.  Date         Notes
  * -----  ----         -----
- * 3.0    2026-???-??  Adapted from desklamp.pov
+ * 3.0    2026-Sep-18  Adapted from desklamp.pov
  */
 // RGB preview:
 //   +W800 +H600 +A Declare=Preview=1
