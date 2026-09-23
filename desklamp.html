@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DeskLamp 2.0.2 User Manual | POV-Ray Object Collection (Proposed)</title>
+<title>DeskLamp 3.0-beta.1 User Manual | POV-Ray Object Collection (Proposed)</title>
 <link rel="stylesheet" type="text/css" href="desklamp.css">
 </head>
 
 <body>
 
-<h1>DeskLamp 2.0.2 User&nbsp;Manual</h1>
+<h1>DeskLamp 3.0-beta.1 User&nbsp;Manual</h1>
 
 <h2>Abstract</h2>
 
@@ -24,6 +24,7 @@ and realistic light fading (attenuation with distance) is used.
 <p>A hooded lamp and two flat panel styles are defined.
 
 <p>If you use Lightsys IV, you can synchronize DeskLamp and Lightsys IV.
+Version 3.0 can be used with LILYsoft SpectralRender
 
 <hr>
 
@@ -61,6 +62,13 @@ and realistic light fading (attenuation with distance) is used.
       <li><a href="#Lamp_Get_Lightsys">Lamp_Get_Lightsys</a>
       <li><a href="#Lamp_Set_Lightsys">Lamp_Set_Lightsys</a>
      </ul>
+    <li><a href="#Spectral">Spectral rendering</a>
+     <ul>
+      <li><a href="#SR-using">Using</a>
+      <li><a href="#Lamp_SRBrightness">Lamp_SRBrightness</a>
+      <li><a href="#Lamp_SRFilter">Lamp_SRFilter</a>
+      <li><a href="#SRdemo">Spectral demo scene</a>
+     </ul>
     <li><a href="#Other_identifiers">Other identifiers</a>
     <li><a href="#About">About DeskLamp</a>
    </ul>
@@ -90,7 +98,9 @@ and realistic light fading (attenuation with distance) is used.
   <td>The user manual (this document)</td>
  </tr><tr>
   <td><code>desklamp.inc</code></td>
-  <td>The DeskLamp library</td>
+  <td rowspan="2">The DeskLamp library</td>
+ </tr><tr>
+  <td><code>desklamp_spectral.inc</code></td>
  </tr><tr>
   <td><code>desklamp.pov</code></td>
   <td>A scene description file demonstrating the use of DeskLamp</td>
@@ -101,12 +111,17 @@ and realistic light fading (attenuation with distance) is used.
   <td><code>desklamp_ls4.pov</code></td>
   <td>A scene description file demonstrating usage of DeskLamp with Lightsys IV</td>
  </tr><tr>
+  <td><code>desklamp_spectral.pov</code></td>
+  <td>A scene description file demonstrating usage of DeskLamp with spectral rendering</td>
+ </tr><tr>
   <td><code>desklamp.jpg</code></td>
-  <td rowspan="4">Sample output images</td>
+  <td rowspan="5">Sample output images</td>
  </tr><tr>
   <td><code>desklamp_lighting.jpg</code></td>
  </tr><tr>
   <td><code>desklamp_ls4.jpg</code></td>
+ </tr><tr>
+  <td><code>desklamp_spectral.jpg</code></td>
  </tr><tr>
   <td><code>desklamp_thumbnail.jpg</code></td>
  </tr><tr>
@@ -150,11 +165,23 @@ Please see the <a href="https://web.archive.org/web/20120419111948/http://lib.po
   (<a href="https://github.com/CousinRicky/POV-RoundEdge" target="_blank">RoundEdge mirror</a>).
 </ul>
 
-<p>The demo scene <code>desklamp_ls4.pov</code> requires <a href="http://www.ignorancia.org/index.php?page=lightsys" target="_blank">Lightsys IV</a> version 4b or later
-(<a href="https://news.povray.org/64cffd99%40news.povray.org" target="_blank">mirror</a> and
-<a href="https://web.archive.org/web/20230609145607/http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">documentation archive</a>);
-however, the sole purpose of this scene is to demonstrate how DeskLamp can be used alongside Lightsys.
-Lightsys is not a prerequisite for usage of the DeskLamp library.
+<h4>Optional</h4>
+
+<dl class="compact">
+ <dt>POV-Ray 3.7 or later:
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and demo scene <code>desklamp_spectral.pov</code>.
+ <dt><a href="http://www.ignorancia.org/index.php?page=lightsys" target="_blank">Lightsys IV</a> version 4b or later
+  (<a href="https://news.povray.org/64cffd99%40news.povray.org" target="_blank">mirror</a> and
+  <a href="https://web.archive.org/web/20230609145607/http://www.ignorancia.org/index.php/technical/lightsys/" target="_blank">documentation archive</a>):
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and
+  demo scenes <code>desklamp_ls4.pov</code> and <code>desklamp_spectral.pov</code>.
+ <dt><a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">LILYsoft SpectralRender</a>:
+ <dd>Required by include file <code>desklamp_spectral.inc</code> and demo scene <code>desklamp_spectral.pov</code>.
+ <dt><a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender-mods add-on</a>:
+ <dd>Used by demo scene <code>desklamp_spectral.pov</code> if available.
+</dl>
+
+<p>The DeskLamp library can be used without these optional tools.
 
 <h3 id="Compliance">Namespace Compliance</h3>
 
@@ -174,12 +201,30 @@ In addition, RoundEdge uses  <code>shapes.inc</code>.
 The identifier <code>View_POV_Include_Stack</code> from the standard include file <code>debug.inc</code> is referenced by <code>desklamp.inc</code>,
 although <code>debug.inc</code> itself is not used.
 
-<p>DeskLamp has two macros that interface with Lightsys IV.
-These macros reference certain Lightsys IV identifiers, prefixed with “<code>Lightsys_</code>,”
-but DeskLamp will not invoke these identifiers unless the user explicitly calls these macros.
-Note that, as Lightsys is not part of the Object Collection,
-there is no guarantee that its identifiers and file names will not conflict with those of compliant Object Collection contributions.
-If you decide to use Lightsys IV, do not keep Lightsys IV in the same folder as your Object Collection libraries.
+<h4 id="non-OC">Interaction with Non-Object Collection Libraries</h4>
+
+<p>DeskLamp has features that interact with libraries Lightsys IV and SpectralRender.
+These two libraries are not part of the Object Collection,
+and as such, there is no guarantee that their identifiers and file names
+will not conflict with those of compliant Object Collection contributions.
+If you decide to download these libraries,
+do not keep them in the same folder as your Object Collection libraries,
+but do keep them in your <a href="https://wiki.povray.org/content/Reference:Scene_Parsing_Options#Library_Paths">library path</a>.
+
+<p>If necessary, most Lightsys identifiers can be destroyed by macro <code>CIE_ReleaseMemory()</code>
+after there is no further use of the features of Lightsys and SpectralRender.
+As of the release of DeskLamp 3.0,
+those Lightsys identifiers unaffected by <code>CIE_ReleaseMemory()</code> do not conflict with any compliant Object Collection libraries.
+
+<p>SpectralRender has no deallocation macro,
+but as of the release of DeskLamp 3.0,
+there is only one compliant Object Collection contribution with a potential conflict:
+GemCuts shares a prefix with one of SpectralRender’s macros,
+but GemCuts has been written to avoid that specific conflict.
+
+
+<p>Interaction with these two libraries can be avoided by not using macros <code>Lamp_Get_Lightsys()</code>
+and <code>Lamp_Set_Lightsys()</code>, and not including file <code>desklamp_spectral.inc</code>.
 
 <h3 id="Usage">Usage</h3>
 
@@ -951,6 +996,160 @@ Simply copying the DeskLamp parameters to the corresponding Lightsys parameters 
 
 <p><a href="#toc">Table of contents</a><hr>
 
+<h2 id="Spectral">Spectral Rendering</h2>
+
+<p><strong>Warning!</strong> Spectral rendering with DeskLamp requires the Lightsys IV and LILYsoft SpectralRender libraries,
+which are not part of the Object Collection.
+SpectralRender in particular uses many different identifier prefixes,
+which have the potential of conflicting with future Object Collection contributions.
+See <a href="#non-OC">Interaction with Non-Object Collection Libraries</a>
+for more information.
+
+<h3 id="SR-using">Using SpectralRender</h3>
+
+<ol>
+ <li><p>POV-Ray <strong>version 3.7 or later</strong> is required.
+ <li><p>Insure that <a href="http://www.ignorancia.org/index.php?page=lightsys" target="_blank">Lightsys IV</a>
+  and <a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">SpectralRender</a>
+  are in your library path.
+  If you do not already have Lightsys IV installed,
+  you may download the required files via the prerequisites section of the
+  <a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">SpectralRender user manual</a>.
+ <li><p>(Optional) For gamut-mapped renders,
+  for low color temperature white points (warm whites),
+  or to render different scenes without having to edit the
+  <code>SpectralComposer.pov</code> file each time, download this
+  <a href="https://github.com/CousinRicky/POV-SpectralRender-mods" target="_blank">SpectralRender-mods add-on</a>
+  and insure that it is in your library path.
+  See the <code>README.md</code> file included with the add-on for how to use it.
+ <li><p>Include these two files in this order:
+  <pre>#include "spectral.inc"
+#include "desklamp_spectral.inc"</pre>
+ <li><p>Ambient and emission colors, being akin to light sources,
+  should be filtered with a white light, using macro <code>Lamp_SRFilter()</code>. For example, to use ColorChecker swatch F4 as a default ambient:
+  <pre>#declare Lamp_c_Ambient = SpectralEmission (Lamp_SRFilter (D_CC_F4, E_D65, 100 * Lamp_Lumen));
+#default { finish { ambient Lamp_c_Ambient }</pre>
+ <li><p>Some arguments to the lamp macros require special treatment:
+  <ul>
+   <li>The <code>Brightness</code> argument must first be passed to macro <code>Lamp_SRBrightness()</code>
+    along with the light source color and bulb or panel color.
+   <li>The <code>c_Color</code> argument, being an emitted color,
+    must use macro <code>SpectralEmission()</code> with a light color such as <code>E_D50</code>.
+   <li>The <code>c_Bulb</code> and <code>c_Panel</code> arguments, being filters rather than emitted colors,
+    should use one of the SpectralRender macros prefixed with ‘<code>C_</code>’,
+    such as <code>C_Spectral()</code> with a color prefixed with ‘<code>D_</code>’.
+    <code>rgb 1</code> may also be used for a pure white bulb or panel.
+  </ul>
+  <p>Example:
+  <pre>Lamp_Flexneck
+( 45, &lt;-30, 75, 60>, y, &lt;0, 75, 0>, on,
+  SpectralEmission (E_D50), <span class="comment">// unfiltered light</span>
+  Lamp_SRBrightness (-450, E_D50, D_CC_D3), <span class="comment">// 450 lumens, pre-processed with the light and bulb colors</span>
+  T_Spectral_Matte (D_CC_C3), <span class="comment">// red lamp body</span>
+  Lamp_Bulb_A60,
+  C_Spectral (D_CC_D3), <span class="comment">// yellow bulb</span>
+  &lt;1, 9, 1, 0>, off, &lt;3, 0>
+)
+</pre>
+</ol>
+
+<p>See the <a href="https://www.lilysoft.org/CGI/SR/Spectral%20Render.htm" target="_blank">SpectralRender user manual</a>
+for further instructions on how to use SpectralRender.
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_SRBrightness">Macro Lamp_SRBrightness (Brightness, sr_Light, sr_Filter)</h3>
+
+<p>Each SpectralRender frame operates on a single wavelength,
+but the brightness of an entire spectral power distribution cannot be calculated from single wavelength.
+This macro provides the required context for this calculation.
+
+<p>Use this macro for the <code>Brightness</code> argument for macros
+<code>Lamp_Flexneck()</code>, <code>Lamp_Flexneck_Rectangular()</code>,
+<code>Lamp_Flexneck_Round()</code>, <code>Lamp_Lighting()</code>,
+and <code>Lamp_Lighting_Flat()</code>.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>Brightness</code></td>
+  <td>float</td>
+  <td><p>The light’s brightness in lumens.
+   If negative, then the absolute value will be used, but reduced according to the luminance of the filter color (<code>sr_Filter</code>).
+   If positive, then the filter color will not affect the lumens.
+   For example, if <code>Brightness</code> is 1100, then a red filter will yield 1100 lumens;
+   but if <code>Brightness</code> is &minus;1100, then a ColorChecker red filter will yield only approximately 130 lumens, because red is darker than white.
+   See the <a href="#Brightness">illustration above</a> for how <code>Brightness</code> interacts with light and filter colors.
+  </td>
+ </tr><tr>
+  <td><code>sr_Light</code></td>
+  <td>SpectralRender color</td>
+  <td>The color of the light source, corresponding to the <code>c_Color</code> argument of the above-named macros.
+   Any SpectralRender light prefixed with ‘<code>E_</code>’ may be used.
+   Do not use <code>Value_1</code> unless you want standard illuminant E.
+  </td>
+ </tr><tr>
+  <td><code>sr_Filter</code></td>
+  <td>SpectralRender color</td>
+  <td>The color of the bulb or emitting panel, corresponding to the <code>c_Bulb</code> or <code>c_Panel</code> argument of the above-named macros.
+   Any SpectralRender color or macro prefixed with ‘<code>D_</code>’ may be used; or <code>Value_1</code> may be used for pure white.
+  </td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="Lamp_SRFilter">Macro Lamp_SRFilter (sr_Color, sr_Filter, Scale)</h3>
+
+<p>Filters one SpectralRender color with another, similar to subtractive color mixing.
+
+<h4>Arguments</h4>
+<table>
+ <tr>
+  <th>Formal Parameter</th> <th>Type</th> <th>Description</th>
+ </tr><tr>
+  <td><code>sr_Color</code></td>
+  <td>SpectralRender color</td>
+  <td>Any color or macro prefixed with ‘<code>D_</code>’.</td>
+ </tr><tr>
+  <td><code>sr_Filter</code></td>
+  <td>SpectralRender color</td>
+  <td>Any SpectralRender color, typically a light prefixed with ‘<code>E_</code>’, although a ‘<code>D_</code>’ color may be used.
+  </td>
+ </tr><tr>
+  <td><code>Scale</code></td>
+  <td>float</td>
+  <td>An amount by which to brighten or dim the final color.</td>
+ </tr>
+</table>
+
+<p><a href="#toc">Table of contents</a><hr>
+
+<h3 id="SRdemo">A Note about the Spectral Demo Scene</h3>
+
+<p>In the demo image <code>desklamp_spectral.jpg</code>,
+the yellow light bulb on the left appears darker that the lamp hood that it illuminates.
+This is because the bulb is a saturated color brighter than the dynamic range of the image format,
+with no blue channel to lighten the yellow,
+whereas the hood appears white due to being partially illuminated by the bluish-white lamp on the right.
+If pass 2 is rendered with an <code>Exposure</code> of 0.01,
+you can see that the bulb really is brighter than the hood.
+To change the exposure with standard SpectralRender,
+edit the <code>SpectralComposer.pov</code> file to change the <code>Exposure</code> declaration in  to <code>#declare Exposure = 0.01;</code>.
+To change the exposure using the SpectralRender-mods add-on,
+put <code>declare=Exposure=0.01</code> on the command line.
+
+<p>Due to the algorithm used by <code>SpectralComposer.pov</code>/<code>SpectralComposer.inc</code>,
+UberPOV glare desaturation (<code>+GLD</code>) will not work directly.
+To brighten the surfaces beyond the dynamic range,
+the image must first be rendered with low <code>Exposure</code>;
+then read into UberPOV as an image map;
+then rendered with a high <code>emission</code> finish (the reciprocal of the low <code>Exposure</code>) using glare desaturation.
+
+<p><a href="#toc">Table of contents</a><hr>
+
 <h2 id="Other_identifiers">Other Identifiers</h2>
 
 <h3 id="Bulbs">Pre-declared Light Bulbs</h3>
@@ -1019,7 +1218,7 @@ For example, if your scene’s unit is 1 hand, you would use:
   <td><code>DESKLAMP_VERSION</code></td>
   <td>float</td>
   <td>The DeskLamp version.</td>
-  <td>2.02</td>
+  <td>3.0</td>
  </tr>
 </table>
 
@@ -1041,6 +1240,10 @@ are considered “private” and are subject to change or elimination in a futur
  <p>This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 </address>
+
+<p>In particular, the library author is not a color expert,
+so the accuracy of the lumens in spectral renders cannot be guaranteed.
+Any suggestions or corrections from color experts would be greatly appreciated.
 
 <h3 id="Categories">Object Collection Categories</h3>
 
@@ -1136,6 +1339,15 @@ are considered “private” and are subject to change or elimination in a futur
     <li>The Lightsys IV URL is updated.
     <li>The license is upgraded to version 3 of the LGPL.
     <li>Bug fix: interior hood illumination is corrected for colored bulbs.
+   </ul>
+  </td>
+ </tr><tr>
+  <td>3.0-beta.1</td>
+  <td>As of 2026-Sep-23</td>
+  <td>
+   <ul>
+    <li>Some implicit textures can be adjusted.
+    <li>An add-on for LILYsoft SpectralRender is created.
     <!--li>The library is submitted to the POV-Ray Object Collection.-->
    </ul>
   </td>
@@ -1147,7 +1359,6 @@ are considered “private” and are subject to change or elimination in a futur
  <li>Power cords. Power cords may be developed from separate Object Collection contributions.
  <li>More lamp styles
  <li>More light bulbs
- <li>Make DeskLamp compatible with LILYsoft’s SpectralRender.
 </ul>
 
 <h3 id="Links">Links</h3>

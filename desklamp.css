@@ -4,7 +4,7 @@
  * This file is licensed under the terms of the GNU-LGPL, version 3 or later.
  * See https://www.gnu.org/licenses/lgpl-3.0.html for the text of the license.
  *
- * Version 2.0.2  2026-Sep-19
+ * Version 3.0-beta.1  2026-Sep-23
  */
 a
 { text-decoration:none;
@@ -200,6 +200,14 @@ dl.compact, dl.inline
   clear:left;
   line-height:1;
   margin-top:0.1em;
+}
+
+.color
+{ color:black;
+  font-size:93%;
+  padding:0px 1em;
+  border:solid black 1px;
+  margin:1px 0.3em 1px 1px;
 }
 
 .demo
